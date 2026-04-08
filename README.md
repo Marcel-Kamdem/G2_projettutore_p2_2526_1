@@ -1,6 +1,6 @@
 # Gestion d'Équipement - Dashboard
 
-Ce projet est une application Django permettant de gérer des gestionnaires. Il utilise du JavaScript (Fetch API) pour mettre à jour les statuts en temps réel sans recharger la page.
+Ce projet est une application Django permettant de gérer des gestionnaires
 
 ## Installation rapide
 
