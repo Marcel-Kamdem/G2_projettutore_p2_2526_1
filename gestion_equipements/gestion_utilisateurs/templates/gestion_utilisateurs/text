@@ -1,0 +1,70 @@
+<style>
+    :root { --primary: #2c3e50; --secondary: #34495e; --accent: #3498db; --danger: #e74c3c; --success: #27ae60; }
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; background: #f4f7f6; }
+    
+    /* Sidebar */
+    .sidebar { width: 250px; height: 100vh; background: var(--primary); color: white; padding: 20px; }
+    .sidebar h2 { font-size: 1.2rem; border-bottom: 1px solid #ffffff33; padding-bottom: 10px; }
+    .nav-link { display: block; color: white; text-decoration: none; padding: 10px 0; }
+    
+    /* Main Content */
+    .main { flex: 1; padding: 40px; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    
+    /* Table */
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th { text-align: left; background: #f8f9fa; padding: 12px; border-bottom: 2px solid #dee2e6; }
+    td { padding: 12px; border-bottom: 1px solid #dee2e6; }
+    
+    /* Buttons */
+    .btn { padding: 8px 15px; border-radius: 4px; text-decoration: none; font-size: 14px; color: white; }
+    .btn-add { background: var(--accent); }
+    .btn-status { background: var(--secondary); }
+</style>
+
+<div class="sidebar">
+    <h2>Direction Campus</h2>
+    <nav>
+        <a href="#" class="nav-link">Tableau de bord</a>
+        <a href="#" class="nav-link">Mon Profil</a>
+        <a href="{% url 'logout' %}" class="nav-link" style="color: #ff7675;">Déconnexion</a>
+    </nav>
+</div>
+
+<div class="main">
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Gestion des Comptes</h2>
+            <a href="{% url 'creer_gestionnaire' %}" class="btn btn-add">+ Nouveau Gestionnaire</a>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Email</th>
+                    <th>État</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for gest in gestionnaires %}
+                <tr>
+                    <td>{{ gest.last_name }}</td>
+                    <td>{{ gest.email }}</td>
+                    <td>
+                        {% if gest.is_active %}
+                            <b style="color: var(--success);">ACTIF</b>
+                        {% else %}
+                            <b style="color: var(--danger);">INACTIF</b>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'toggle_status' gest.id %}" class="btn btn-status">Changer État</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
