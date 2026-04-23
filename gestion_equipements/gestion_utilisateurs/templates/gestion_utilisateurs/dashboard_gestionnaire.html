@@ -1,1 +1,85 @@
-<h1>Ici la page des gestionnaires</h1>
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — GestioLab</title>
+  <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modules.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+  <style>
+    .dashboard-welcome{background:linear-gradient(135deg,var(--c2l) 0%,var(--c4) 100%);border-radius:var(--radius);padding:2rem 2.5rem;margin-bottom:2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+    .welcome-text h2{font-family:var(--ff);font-size:1.6rem;font-weight:800;margin-bottom:.25rem}
+    .welcome-text p{color:#444;font-size:.95rem}
+    .module-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem}
+    .module-card{background:var(--c3);border-radius:var(--radius);border:2px solid var(--c2l);box-shadow:var(--shadow-sm);padding:1.75rem;text-decoration:none;color:var(--c1);transition:box-shadow .15s,transform .1s;display:flex;flex-direction:column;gap:1rem}
+    .module-card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+    .mod-icon{font-size:2.5rem}.mod-title{font-family:var(--ff);font-size:1.2rem;font-weight:800}
+    .mod-desc{font-size:.85rem;color:var(--c5);line-height:1.5}
+    .mod-stats{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.25rem}
+    .mod-stat .val{font-family:var(--ff);font-size:1.5rem;font-weight:800;color:var(--c2)}
+    .mod-stat .lbl{font-size:.72rem;color:var(--c5);font-weight:600;text-transform:uppercase}
+    .quick-actions{background:var(--c3);border-radius:var(--radius);padding:1.5rem;box-shadow:0 2px 8px #0001}
+    .quick-actions h3{font-family:var(--ff);font-size:1rem;font-weight:800;margin-bottom:1rem;color:var(--c5);text-transform:uppercase;letter-spacing:.05em}
+    .quick-list{display:flex;gap:.75rem;flex-wrap:wrap}
+    @media(max-width:600px){.module-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<header class="header">
+  <a href="{% url 'dashboard_gestionnaire' %}" class="header-brand">⬡ GestioLab</a>
+  <nav class="header-nav">
+    <a href="{% url 'liste_equipements' %}">Équipements</a>
+    <a href="{% url 'liste_contacts' %}">Contacts</a>
+  </nav>
+  <div class="header-right">
+    <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
+    <a href="{% url 'modifier_mot_de_passe' %}" class="btn btn-outline btn-sm">🔑 MDP</a>
+    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Déconnexion</a>
+  </div>
+</header>
+<div class="messages-container">
+  {% for message in messages %}<div class="alert alert-{{ message.tags }}">{{ message }}</div>{% endfor %}
+</div>
+<div class="page-wrapper">
+  <div class="dashboard-welcome">
+    <div class="welcome-text">
+      <h2>Bonjour, {{ gestionnaire.first_name|default:gestionnaire.username }} 👋</h2>
+      <p>Bienvenue dans votre espace de gestion. Que souhaitez-vous faire aujourd'hui ?</p>
+    </div>
+    <div style="font-size:3.5rem">🏫</div>
+  </div>
+  <div class="module-grid">
+    <a href="{% url 'liste_equipements' %}" class="module-card">
+      <div class="mod-icon">📦</div>
+      <div><div class="mod-title">Module Équipements</div>
+      <div class="mod-desc">Gérez le parc d'équipements : ajout, modification, retrait, import Excel, recherche.</div></div>
+      <div class="mod-stats">
+        <div class="mod-stat"><div class="val">{{ stats_eq.total }}</div><div class="lbl">Total</div></div>
+        <div class="mod-stat"><div class="val" style="color:#065f46">{{ stats_eq.disponible }}</div><div class="lbl">Disponibles</div></div>
+        <div class="mod-stat"><div class="val" style="color:#92400e">{{ stats_eq.emprunte }}</div><div class="lbl">Empruntés</div></div>
+      </div>
+    </a>
+    <a href="{% url 'liste_contacts' %}" class="module-card">
+      <div class="mod-icon">👥</div>
+      <div><div class="mod-title">Module Contacts</div>
+      <div class="mod-desc">Gérez les emprunteurs : étudiants, enseignants, personnel. Import Excel disponible.</div></div>
+      <div class="mod-stats">
+        <div class="mod-stat"><div class="val">{{ stats_ct.total }}</div><div class="lbl">Contacts</div></div>
+      </div>
+    </a>
+  </div>
+  <div class="quick-actions">
+    <h3>Actions rapides</h3>
+    <div class="quick-list">
+      <a href="{% url 'creer_equipement' %}" class="btn btn-primary">+ Ajouter un équipement</a>
+      <a href="{% url 'creer_contact' %}" class="btn btn-green">+ Ajouter un contact</a>
+      <a href="{% url 'importer_equipements' %}" class="btn btn-outline">⬆ Importer équipements</a>
+      <a href="{% url 'importer_contacts' %}" class="btn btn-outline">⬆ Importer contacts</a>
+      <a href="{% url 'modifier_mot_de_passe' %}" class="btn btn-outline">🔑 Changer mot de passe</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

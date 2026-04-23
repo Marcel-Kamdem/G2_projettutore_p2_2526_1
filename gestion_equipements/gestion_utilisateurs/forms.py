@@ -3,6 +3,49 @@ from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
 from .models import Gestionnaire
 from django.conf import settings
+from django.contrib.auth import password_validation
+
+
+class ModifierMotDePasseForm(forms.Form):
+    ancien_mdp = forms.CharField(
+        label="Mot de passe actuel",
+        widget=forms.PasswordInput(attrs={'class': 'form-Field', 'placeholder': 'Mot de passe actuel'})
+    )
+    nouveau_mdp = forms.CharField(
+        label="Nouveau mot de passe",
+        widget=forms.PasswordInput(attrs={'class': 'form-Field', 'placeholder': 'Nouveau mot de passe'}),
+        help_text=password_validation.password_validators_help_text_html()
+    )
+    confirmation_mdp = forms.CharField(
+        label="Confirmer le nouveau mot de passe",
+        widget=forms.PasswordInput(attrs={'class': 'form-Field', 'placeholder': 'Confirmer le mot de passe'})
+    )
+
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_ancien_mdp(self):
+        ancien = self.cleaned_data.get('ancien_mdp')
+        if not self.user.check_password(ancien):
+            raise forms.ValidationError("Le mot de passe actuel est incorrect.")
+        return ancien
+
+    def clean(self):
+        cleaned = super().clean()
+        nouveau = cleaned.get('nouveau_mdp')
+        confirmation = cleaned.get('confirmation_mdp')
+        if nouveau and confirmation and nouveau != confirmation:
+            self.add_error('confirmation_mdp', "Les deux mots de passe ne correspondent pas.")
+        if nouveau:
+            password_validation.validate_password(nouveau, self.user)
+        return cleaned
+
+    def save(self):
+        nouveau = self.cleaned_data['nouveau_mdp']
+        self.user.set_password(nouveau)
+        self.user.save()
+        return self.user
 
 class LoginForm(forms.Form):
     email = forms.EmailField(widget=forms.TextInput(attrs={

@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import LoginForm, GestionnaireCreationForm
+from .forms import LoginForm, GestionnaireCreationForm, ModifierMotDePasseForm
 from .models import Administrateur, Gestionnaire
 from django.http import JsonResponse
 
@@ -55,12 +55,29 @@ def dashboard_admin(request):
 
 @login_required
 def dashboard_gestionnaire(request):
-    # (Grâce à mon héritage, je vérifie s'il existe dans la table Gestionnaire)
     if not hasattr(request.user, 'gestionnaire'):
-        return redirect('login') 
+        return redirect('login')
     
+    # Import stats dynamiquement pour éviter circular imports
+    try:
+        from equipements.models import Equipement
+        from contacts.models import Contact
+        stats_eq = {
+            'total': Equipement.objects.filter(est_actif=True).count(),
+            'disponible': Equipement.objects.filter(etat='disponible', est_actif=True).count(),
+            'emprunte': Equipement.objects.filter(etat='emprunte', est_actif=True).count(),
+        }
+        stats_ct = {
+            'total': Contact.objects.filter(est_actif=True).count(),
+        }
+    except Exception:
+        stats_eq = {'total': 0, 'disponible': 0, 'emprunte': 0}
+        stats_ct = {'total': 0}
+
     context = {
         'gestionnaire': request.user,
+        'stats_eq': stats_eq,
+        'stats_ct': stats_ct,
     }
     return render(request, 'gestion_utilisateurs/dashboard_gestionnaire.html', context)
 
@@ -99,3 +116,22 @@ def toggle_status(request, gest_id):
         gestionnaire.save()
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status':'error'}, status=400)
+
+
+@login_required
+def modifier_mot_de_passe(request):
+    if request.method == 'POST':
+        form = ModifierMotDePasseForm(request.user, request.POST)
+        if form.is_valid():
+            form.save()
+            # Garde la session active après changement MDP
+            update_session_auth_hash(request, request.user)
+            messages.success(request, "Votre mot de passe a été modifié avec succès.")
+            if request.user.is_staff:
+                return redirect('dashboard_admin')
+            return redirect('dashboard_gestionnaire')
+        else:
+            messages.error(request, "Erreur lors de la modification. Vérifiez les champs.")
+    else:
+        form = ModifierMotDePasseForm(request.user)
+    return render(request, 'gestion_utilisateurs/modifier_mot_de_passe.html', {'form': form})

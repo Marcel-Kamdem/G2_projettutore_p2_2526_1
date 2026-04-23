@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Équipements — GestioLab</title>
+  <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modules.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="header">
+  <a href="#" class="header-brand">⬡ GestioLab</a>
+  <nav class="header-nav">
+    <a href="{% url 'liste_equipements' %}" class="active">Équipements</a>
+    <a href="{% url 'liste_contacts' %}">Contacts</a>
+  </nav>
+  <div class="header-right">
+    <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
+    <a href="{% url 'modifier_mot_de_passe' %}" class="btn btn-outline btn-sm">🔑 MDP</a>
+    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Déconnexion</a>
+  </div>
+</header>
+
+<div class="messages-container">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+
+<div class="page-wrapper">
+
+  <div class="page-title-bar">
+    <h1 class="page-title">📦 Équipements</h1>
+    <div class="page-actions">
+      <a href="{% url 'importer_equipements' %}" class="btn btn-outline">⬆ Importer Excel</a>
+      <a href="{% url 'creer_equipement' %}" class="btn btn-primary">+ Ajouter</a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Total</div>
+      <div class="stat-value">{{ stats.total }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Disponibles</div>
+      <div class="stat-value" style="color:#065f46">{{ stats.disponible }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Empruntés</div>
+      <div class="stat-value" style="color:#92400e">{{ stats.emprunte }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Maintenance</div>
+      <div class="stat-value" style="color:#1e40af">{{ stats.maintenance }}</div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <form method="GET" class="filter-bar">
+    <input type="text" name="q" value="{{ query }}" placeholder="🔍 Rechercher par nom ou référence...">
+    <select name="categorie">
+      <option value="">Toutes les catégories</option>
+      {% for cat in categories %}
+        <option value="{{ cat.id }}" {% if categorie_id == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.nom }}</option>
+      {% endfor %}
+    </select>
+    <select name="etat">
+      <option value="">Tous les états</option>
+      <option value="disponible" {% if etat_filtre == 'disponible' %}selected{% endif %}>Disponible</option>
+      <option value="emprunte"   {% if etat_filtre == 'emprunte' %}selected{% endif %}>Emprunté</option>
+      <option value="maintenance"{% if etat_filtre == 'maintenance' %}selected{% endif %}>Maintenance</option>
+      <option value="retire"     {% if etat_filtre == 'retire' %}selected{% endif %}>Retiré</option>
+    </select>
+    <button type="submit" class="btn btn-green btn-search">Filtrer</button>
+    {% if query or categorie_id or etat_filtre %}
+      <a href="{% url 'liste_equipements' %}" class="btn btn-outline">✕ Réinitialiser</a>
+    {% endif %}
+  </form>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-scroll">
+      {% if equipements %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Référence</th>
+            <th>Catégorie</th>
+            <th>État</th>
+            <th>Localisation</th>
+            <th>Date ajout</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for eq in equipements %}
+          <tr>
+            <td><strong>{{ eq.nom }}</strong></td>
+            <td style="font-family:monospace;font-size:.82rem">{{ eq.reference|default:"—" }}</td>
+            <td>{{ eq.categorie.nom|default:"—" }}</td>
+            <td><span class="badge badge-{{ eq.etat }}">{{ eq.get_etat_display }}</span></td>
+            <td>{{ eq.localisation|default:"—" }}</td>
+            <td>{{ eq.date_ajout|date:"d/m/Y" }}</td>
+            <td>
+              <div class="td-actions">
+                <a href="{% url 'detail_equipement' eq.pk %}" class="btn btn-sm btn-outline" title="Voir">👁</a>
+                <a href="{% url 'modifier_equipement' eq.pk %}" class="btn btn-sm btn-green" title="Modifier">✏</a>
+                <a href="{% url 'retirer_equipement' eq.pk %}" class="btn btn-sm btn-danger" title="Retirer">🗑</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <p>Aucun équipement trouvé.
+          {% if query or categorie_id or etat_filtre %}
+            <a href="{% url 'liste_equipements' %}">Réinitialiser les filtres</a>
+          {% else %}
+            <a href="{% url 'creer_equipement' %}">Ajouter le premier équipement</a>
+          {% endif %}
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
