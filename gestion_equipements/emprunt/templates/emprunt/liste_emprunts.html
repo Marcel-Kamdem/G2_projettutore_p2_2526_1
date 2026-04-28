@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/reset.css'%}">
+    <link rel="stylesheet" href="{% static 'css/add_gestionnaire.css'%}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Roboto:wght@100..900&display=swap" rel="stylesheet">
+    <title>Gestion Equipement - Add New Manager</title>
+    <style>
+        .emprunts-wrapper {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px 0;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .table-custom thead {
+            background-color: #56ab85;
+            color: #ffffff;
+        }
+
+        .table-custom th, .table-custom td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table-custom tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .bg-success { background: #d4edda; color: #155724; }
+        .bg-danger { background: #f8d7da; color: #721c24; }
+        .bg-warning { background: #fff3cd; color: #856404; }
+
+        .btn-group { display: flex; gap: 5px; }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; cursor: not-allowed; opacity: 0.6; }
+
+        .btn-sm:hover:not(:disabled) { opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div class="emprunts-wrapper">
+        <table class="table-custom">
+        <thead>
+            <tr>
+                <th>Équipement</th>
+                <th>Bénéficiaire</th>
+                <th>Retour prévu</th>
+                <th>Statut</th>
+                <th>Actions Admin</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for emprunt in emprunts %}
+            <tr>
+                <td><strong>{{ emprunt.equipement.nom }}</strong></td>
+                <td>{{ emprunt.beneficiaire }}</td>
+                <td>{{ emprunt.date_retour_prevu|date:"d/m/Y" }}</td>
+                <td>
+                    <span class="badge {% if emprunt.etat == 'Accepté' %}bg-success{% elif emprunt.etat == 'Refusé' %}bg-danger{% else %}bg-warning{% endif %}">
+                        {{ emprunt.etat }}
+                    </span>
+                </td>
+                <td>
+                    <div class="btn-group">
+                        {% if emprunt.etat == 'En attente' and user.is_staff %}
+                            <a href="{% url 'valider_emprunt' emprunt.pk 'accepter' %}" class="btn btn-sm btn-success">Accepter</a>
+                            <a href="{% url 'valider_emprunt' emprunt.pk 'refuser' %}" class="btn btn-sm btn-danger">Refuser</a>
+                        {% else %}
+                            <button class="btn btn-sm btn-secondary" disabled>Accepter</button>
+                            <button class="btn btn-sm btn-secondary" disabled>Refuser</button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #888;">Aucun emprunt enregistré.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+</body>
+</html>

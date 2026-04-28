@@ -19,7 +19,7 @@
             <p class="hero-description">
                 Log into your campus equipment account.
             </p>
-            <form action="" method="post" class="login-form">
+            <form  method="POST" action="{% url 'login' %}" method="post" class="login-form">
                 {% csrf_token %}
                 {{ form.email }}
                 {{ form.password }}

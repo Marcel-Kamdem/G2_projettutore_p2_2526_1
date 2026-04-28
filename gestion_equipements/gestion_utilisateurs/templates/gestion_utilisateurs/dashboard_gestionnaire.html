@@ -77,9 +77,74 @@
       <a href="{% url 'creer_contact' %}" class="btn btn-green">+ Ajouter un contact</a>
       <a href="{% url 'importer_equipements' %}" class="btn btn-outline">⬆ Importer équipements</a>
       <a href="{% url 'importer_contacts' %}" class="btn btn-outline">⬆ Importer contacts</a>
-      <a href="{% url 'modifier_mot_de_passe' %}" class="btn btn-outline">🔑 Changer mot de passe</a>
+      <div style="display: flex; gap: 10px;"> 
+        <button class="cta"><a href="{% url 'liste_emprunts' %}" style="text-decoration: none; color: inherit;">Planification des emprunts</a></button>
+      </div>
     </div>
   </div>
 </div>
+<h3>Ma Planification (Suivi des demandes)</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Équipement</th>
+            <th>Date retour prévu</th>
+            <th>État de la demande</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in planification %}
+        <tr>
+            <td>{{ item.equipement.nom }}</td>
+            <td>{{ item.date_retour_prevu }}</td>
+            <td>
+                {% if item.etat == 'En attente' %}
+                    <button class="btn btn-sm btn-secondary" disabled>🟡 En attente admin</button>
+                {% elif item.etat == 'Accepté' %}
+                    <button class="btn btn-sm btn-success" disabled>🟢 Emprunt Validé</button>
+                {% elif item.etat == 'Refusé' %}
+                    <button class="btn btn-sm btn-danger" disabled>🔴 Emprunt Refusé</button>
+                {% else %}
+                    <span class="badge bg-dark">{{ item.etat }}</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+  <section id="loan-planning-section" class="manager-board" style="margin-top: 40px; display: none;">
+                <h3 class="main-top_title" style="padding: 20px 0 0 20px;">Planification des emprunts</h3>
+                <main class="manager-board_table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Equipement</th>
+                                <th>Beneficiare</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in planification %}
+                            <tr>
+                                <td><b>{{ item.equipement.nom }}</b></td>
+                                <td>{{ item.beneficiaire.nom }}</td>
+                                <td><span class="badge-status">{{ item.etat }}</span></td>
+                                <td>
+                                    {% if item.etat == 'En attente' %}
+                                        <a href="{% url 'valider_emprunt' item.pk 'accepter' %}" class="action-link" style="color: var(--color-2);">Accept</a>
+                                        <a href="{% url 'valider_emprunt' item.pk 'refuser' %}" class="action-link" style="color: var(--color-7);">Refuse</a>
+                                    {% else %}
+                                        <span style="color: var(--color-5);">Traitement</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" style="text-align: center;">Aucune requete trouvée.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </main>
+        </section>
 </body>
 </html>

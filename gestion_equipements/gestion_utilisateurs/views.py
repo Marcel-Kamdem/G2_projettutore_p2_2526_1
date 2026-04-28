@@ -5,6 +5,9 @@ from django.contrib import messages
 from .forms import LoginForm, GestionnaireCreationForm, ModifierMotDePasseForm
 from .models import Administrateur, Gestionnaire
 from django.http import JsonResponse
+from emprunt.models import Emprunt
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 
 def index(request):
@@ -12,16 +15,20 @@ def index(request):
 
 def login_view(request):
     error = False
+
     if request.method == "POST":
         form = LoginForm(request.POST)
+
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
 
             user = authenticate(request, username=email, password=password)
+
             if user:
                 login(request, user)
-                if user.is_staff:
+
+                if user.role == "Admin":
                     return redirect('dashboard_admin')
                 return redirect('dashboard_gestionnaire')
             else:
@@ -29,15 +36,20 @@ def login_view(request):
     else:
         form = LoginForm()
 
-    return render(request, "gestion_utilisateurs/login.html",{'form':form, 'error':error})
-
+    return render(request, "gestion_utilisateurs/login.html", {
+        'form': form,
+        'error': error
+    })
 
 @login_required
 def dashboard_admin(request):
     # (Grâce à mon héritage, je vérifie s'il existe dans la table Administrateur)
     if not hasattr(request.user, 'administrateur'):
         return redirect('login') 
-        
+    
+    planification = Emprunt.objects.all().order_by('-date_empr')
+    return render(request, 'gestion_utilisateurs/dashboard_admin.html', {'planification': planification})   
+    
     # On récupère tous les gestionnaires pour les afficher
     liste_gestionnaires = Gestionnaire.objects.all()
     total_des_gestionnaires = Gestionnaire.objects.count()
@@ -57,7 +69,15 @@ def dashboard_admin(request):
 def dashboard_gestionnaire(request):
     if not hasattr(request.user, 'gestionnaire'):
         return redirect('login')
-    
+    gestionnaires = User.objects.filter(is_staff=False)
+    planification = Emprunt.objects.all().order_by('-date_empr') 
+
+    context = {
+        'gestionnaires': gestionnaires,
+        'planification': planification, 
+    }
+    return render(request, 'gestion_utilisateurs/dashboard_admin.html', context)
+
     # Import stats dynamiquement pour éviter circular imports
     try:
         from equipements.models import Equipement
@@ -135,3 +155,57 @@ def modifier_mot_de_passe(request):
     else:
         form = ModifierMotDePasseForm(request.user)
     return render(request, 'gestion_utilisateurs/modifier_mot_de_passe.html', {'form': form})
+
+@login_required
+def liste_emprunts(request):
+    emprunts = Emprunt.objects.all()
+
+    if request.user.role == "Admin":
+        return render(request, "gestion_utilisateurs/liste_admin.html", {"emprunts": emprunts})
+    else:
+        return render(request, "gestion_utilisateurs/liste_Gestionnaire.html", {"emprunts": emprunts})
+
+@login_required
+def creer_emprunt(request):
+    if request.method == "POST":
+        form = EmpruntForm(request.POST)
+        if form.is_valid():
+            emprunt = form.save(commit=False)
+            emprunt.gestionnaire = request.user 
+            emprunt.etat = 'En attente'       
+            emprunt.save()
+            return redirect('liste_emprunts')
+    else:
+        form = EmpruntForm()
+    
+    return render(request, 'gestion_utilisateurs/creer_emprunt.html', {'form': form})
+
+@login_required
+def refuser_emprunt(request, id):
+    if request.user.role != "Admin":
+        return redirect("liste_emprunts")
+
+    emprunt = get_object_or_404(Emprunt, id=id)
+    emprunt.statut = "refuse"
+    emprunt.save()
+    return redirect("planification")
+
+@login_required
+def valider_emprunt(request, id):
+    if request.user.role != "Admin":
+        return redirect("liste_emprunts")
+
+    emprunt = get_object_or_404(Emprunt, id=id)
+    emprunt.statut = "valide"
+    emprunt.save()
+    return redirect("planification")
+
+@login_required
+def planification_emprunts(request):
+    emprunts = Emprunt.objects.all()
+
+    if request.user.role == "Admin":
+        return render(request, "gestion_utilisateurs/planification_admin.html", {"emprunts": emprunts})
+    else:
+        return render(request, "gestion_utilisateurs/planification_gestionnaire.html", {"emprunts": emprunts})
+

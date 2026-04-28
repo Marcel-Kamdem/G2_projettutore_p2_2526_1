@@ -24,3 +24,20 @@ class Administrateur(Utilisateur):
 class Gestionnaire(Utilisateur):
     class Meta:
         verbose_name = "Gestionnaire"
+
+class Emprunt(models.Model):
+    STATUT_CHOICES = [
+        ("en_attente", "En attente"),
+        ("valide", "Validé"),
+        ("refuse", "Refusé"),
+    ]
+
+    beneficiaire = models.CharField(max_length=100)
+    equipement = models.CharField(max_length=100)
+    motif = models.TextField()
+    date_emprunt = models.DateField()
+    date_retour = models.DateField()
+    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default="en_attente")
+
+    def __str__(self):
+        return f"{self.beneficiaire} - {self.equipement}"

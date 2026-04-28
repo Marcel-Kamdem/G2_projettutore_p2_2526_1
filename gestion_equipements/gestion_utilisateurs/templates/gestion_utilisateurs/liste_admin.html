@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-admin.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Roboto:wght@100..900&display=swap" rel="stylesheet">
+    <title>Gestion Equipement - Liste des Emprunts</title>
+</head>
+<body>
+    <header class="header">
+        <div style="width: 1px;"></div>
+        <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil" width="50px" height="50px" class="profil-img">
+        <a href="{% url 'logout' %}"><img src="{% static 'assets/img/icone/logout.svg' %}" alt="logout"></a>
+    </header>
+
+    <div class="container">
+        <main class="main">
+            <section class="main-top">
+                <h3 class="main-top_title">Liste des emprunts</h3>
+                <div style="display: flex; gap: 10px;"> 
+                    <button class="cta"><a href="{% url 'dashboard_admin' %}" style="text-decoration: none; color: inherit;">Dashboard</a></button>
+                </div>
+            </section>
+
+            <!-- SECTION TABLEAU -->
+            <section class="manager-board" style="display: block !important; margin-top: 20px;">
+                <div class="manager-board_table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Équipement</th>
+                                <th>Bénéficiaire</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in emprunts %}
+                            <tr>
+                                <!-- Note: Vérifiez si c'est item.equipement.nom ou item.materiel.nom -->
+                                <td><b>{{ item.equipement.nom|default:item.equipement }}</b></td>
+                                <td>{{ item.user.username|default:item.beneficiaire }}</td>
+                                <td>
+                                    <span style="font-weight: bold; color: {% if item.etat == 'Validé' %}green{% elif item.etat == 'Refusé' %}red{% else %}orange{% endif %};">
+                                        {{ item.etat|default:"En attente" }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" style="text-align: center; padding: 50px; color: grey;">
+                                    <b>Aucune donnée reçue.</b><br>
+                                    Vérifiez que vous envoyez bien 'emprunts' depuis votre vue Python.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

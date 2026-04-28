@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-admin.css' %}">
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=League+Spartan:wght@100..900&family=Roboto:wght@100..900&display=swap" rel="stylesheet">
+    <title>Gestion Equipement - Liste des Emprunts</title>
+</head>
+<body>
+    <header class="header">
+        <div width="1px"></div>
+        <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil picture" width="50px" height="50px" class="profil-img">
+        <a href="{% url 'logout' %}"><img src="{% static 'assets/img/icone/logout.svg' %}" alt="logout - btn"></a>
+    </header>
+
+    <div class="container">
+        <main class="main">
+            <!-- Navigation Rapide -->
+            <section class="main-top">
+                <h3 class="main-top_title">Liste des emprunts</h3>
+                <div style="display: flex; gap: 10px;"> 
+                    <button class="cta"><a href="{% url 'dashboard_admin' %}" style="text-decoration: none; color: inherit;">Dashboard</a></button>
+                </div>
+            </section>
+
+            <!-- Tableau de la liste des emprunts -->
+            <section class="manager-board" style="margin-top: 20px;">
+                <main class="manager-board_table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Équipement</th>
+                                <th>Bénéficiaire</th>
+                                <th>Date d'Emprunt</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in emprunts %}
+                            <tr>
+                                <td><b>{{ item.equipement.nom }}</b></td>
+                                <td>{{ item.beneficiaire.nom }} {{ item.beneficiaire.prenom }}</td>
+                                <td>{{ item.date_emprunt|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if item.etat == 'Validé' %}
+                                        <span style="color: green; font-weight: bold;">{{ item.etat }}</span>
+                                    {% elif item.etat == 'Refusé' %}
+                                        <span style="color: red; font-weight: bold;">{{ item.etat }}</span>
+                                    {% else %}
+                                        <span style="color: orange; font-weight: bold;">En attente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 20px;">
+                                    Aucun emprunt n'est enregistré pour le moment.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </main>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

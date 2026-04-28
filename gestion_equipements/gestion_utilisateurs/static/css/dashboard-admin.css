@@ -43,9 +43,9 @@
 
 .bouton{
     background-color: #d2d2d2;
-    border-radius: 200px;
-    width: 60px;
-    height: 30px;
+    border-radius: 170px;
+    width: 55px;
+    height: 20px;
     cursor: pointer;
     position: relative;
 }
@@ -253,4 +253,35 @@ tbody tr:hover{
     td{
         min-width: 15rem;
     }
+}
+/* Style spécifique pour le bouton planning */
+#btn-planning {
+    background-color: var(--color-2); /* Ton vert */
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#btn-planning:hover {
+    background-color: var(--color-8); /* Ton vert foncé */
+}
+
+/* Classe pour changer l'apparence quand le planning est affiché */
+.btn-active {
+    background-color: var(--color-5) !important; /* Gris quand ouvert */
+}
+
+/* Style pour les liens d'action dans le tableau planning */
+.action-link {
+    text-decoration: none;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.badge-status {
+    padding: 4px 8px;
+    background-color: var(--color-9);
+    border-radius: 4px;
+    font-size: 0.85rem;
 }
