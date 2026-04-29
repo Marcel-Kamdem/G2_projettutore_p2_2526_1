@@ -12,7 +12,7 @@
     .dashboard-welcome{background:linear-gradient(135deg,var(--c2l) 0%,var(--c4) 100%);border-radius:var(--radius);padding:2rem 2.5rem;margin-bottom:2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
     .welcome-text h2{font-family:var(--ff);font-size:1.6rem;font-weight:800;margin-bottom:.25rem}
     .welcome-text p{color:#444;font-size:.95rem}
-    .module-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem}
+    .module-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;margin-bottom:2rem}
     .module-card{background:var(--c3);border-radius:var(--radius);border:2px solid var(--c2l);box-shadow:var(--shadow-sm);padding:1.75rem;text-decoration:none;color:var(--c1);transition:box-shadow .15s,transform .1s;display:flex;flex-direction:column;gap:1rem}
     .module-card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
     .mod-icon{font-size:2.5rem}.mod-title{font-family:var(--ff);font-size:1.2rem;font-weight:800}
@@ -23,7 +23,9 @@
     .quick-actions{background:var(--c3);border-radius:var(--radius);padding:1.5rem;box-shadow:0 2px 8px #0001}
     .quick-actions h3{font-family:var(--ff);font-size:1rem;font-weight:800;margin-bottom:1rem;color:var(--c5);text-transform:uppercase;letter-spacing:.05em}
     .quick-list{display:flex;gap:.75rem;flex-wrap:wrap}
-    @media(max-width:600px){.module-grid{grid-template-columns:1fr}}
+    @media(max-width:600px){
+      .module-grid{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
@@ -32,6 +34,7 @@
   <nav class="header-nav">
     <a href="{% url 'liste_equipements' %}">Équipements</a>
     <a href="{% url 'liste_contacts' %}">Contacts</a>
+    <a href="{% url 'liste_emprunts' %}">Emprunts</a>
   </nav>
   <div class="header-right">
     <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
@@ -67,6 +70,14 @@
       <div class="mod-desc">Gérez les emprunteurs : étudiants, enseignants, personnel. Import Excel disponible.</div></div>
       <div class="mod-stats">
         <div class="mod-stat"><div class="val">{{ stats_ct.total }}</div><div class="lbl">Contacts</div></div>
+      </div>
+    </a>
+    <a href="{% url 'liste_emprunts' %}" class="module-card">
+      <div class="mod-icon">📥</div>
+      <div><div class="mod-title">Module emprunts</div>
+      <div class="mod-desc">Gérez les emprunts de materiels par les étudiants, enseignants, personnel. Import Excel disponible.</div></div>
+      <div class="mod-stats">
+        {% comment %} <div class="mod-stat"><div class="val">{{ stats_ct.total }}</div><div class="lbl">Contacts</div></div> {% endcomment %}
       </div>
     </a>
   </div>
