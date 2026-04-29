@@ -1,0 +1,485 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statistiques — GestioLab</title>
+  <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modules.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── Grille principale ─────────────────────────────────────────────── */
+    .stats-section-title {
+      font-family: var(--ff); font-size: 1rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .06em;
+      color: var(--c5); margin: 2rem 0 1rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .stats-section-title::after {
+      content: ''; flex: 1; height: 2px; background: var(--c2l);
+    }
+
+    /* ── KPI cards ─────────────────────────────────────────────────────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem; margin-bottom: 1rem;
+    }
+    .kpi-card {
+      background: var(--c3); border: 2px solid var(--c2);
+      border-radius: var(--radius); padding: 1.25rem 1rem;
+      box-shadow: var(--shadow-sm); text-align: center;
+      transition: box-shadow .15s, transform .1s;
+    }
+    .kpi-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+    .kpi-card.danger  { border-color: var(--c7); }
+    .kpi-card.warning { border-color: #E0C039; }
+    .kpi-card.info    { border-color: #3b82f6; }
+    .kpi-label { font-size: .75rem; font-weight: 700; color: var(--c5); text-transform: uppercase; letter-spacing: .05em; margin-bottom: .4rem; }
+    .kpi-value { font-family: var(--ff); font-size: 2.4rem; font-weight: 800; color: var(--c2); line-height: 1; }
+    .kpi-card.danger  .kpi-value { color: var(--c7); }
+    .kpi-card.warning .kpi-value { color: #b45309; }
+    .kpi-card.info    .kpi-value { color: #1d4ed8; }
+    .kpi-sub { font-size: .7rem; color: var(--c5); margin-top: .3rem; }
+
+    /* ── Graphiques ────────────────────────────────────────────────────── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem; margin-bottom: 2rem;
+    }
+    .chart-card {
+      background: var(--c3); border: 2px solid var(--c2l);
+      border-radius: var(--radius); padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .chart-card.full { grid-column: 1 / -1; }
+    .chart-title {
+      font-family: var(--ff); font-size: 1rem; font-weight: 800;
+      margin-bottom: 1rem; color: var(--c1);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .chart-container { position: relative; height: 260px; }
+
+    /* ── Tableaux Top ───────────────────────────────────────────────────── */
+    .tops-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+    .top-card {
+      background: var(--c3); border: 2px solid var(--c2l);
+      border-radius: var(--radius); padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .top-card-title {
+      font-family: var(--ff); font-size: .95rem; font-weight: 800;
+      margin-bottom: 1rem; color: var(--c1);
+    }
+    .top-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .6rem 0; border-bottom: 1px solid var(--c4);
+      font-size: .88rem;
+    }
+    .top-row:last-child { border-bottom: none; }
+    .top-rank {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--c2l); color: var(--c1);
+      font-family: var(--ff); font-size: .75rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-right: .75rem;
+    }
+    .top-rank.gold   { background: #fde68a; }
+    .top-rank.silver { background: #e5e7eb; }
+    .top-rank.bronze { background: #fcd9b0; }
+    .top-name { flex: 1; font-weight: 600; }
+    .top-badge {
+      background: var(--c2); color: var(--c3);
+      border-radius: 100px; padding: .2rem .7rem;
+      font-size: .75rem; font-weight: 700;
+    }
+
+    /* ── Liens rapides ──────────────────────────────────────────────────── */
+    .quick-nav {
+      display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;
+    }
+    .quick-nav-card {
+      flex: 1; min-width: 200px;
+      background: var(--c3); border: 2px solid var(--c2l);
+      border-radius: var(--radius); padding: 1.25rem 1.5rem;
+      text-decoration: none; color: var(--c1);
+      display: flex; align-items: center; gap: 1rem;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow .15s, transform .1s;
+    }
+    .quick-nav-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); background: var(--c4); }
+    .quick-nav-icon { font-size: 2rem; }
+    .quick-nav-text .qn-title { font-family: var(--ff); font-size: 1rem; font-weight: 800; }
+    .quick-nav-text .qn-desc  { font-size: .8rem; color: var(--c5); }
+
+    /* ── Taux dispo jauge ──────────────────────────────────────────────── */
+    .gauge-wrapper {
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: .5rem; padding: 1rem;
+    }
+    .gauge-label { font-size: .8rem; color: var(--c5); font-weight: 600; text-transform: uppercase; }
+    .gauge-value { font-family: var(--ff); font-size: 3rem; font-weight: 800; color: var(--c2); }
+    .gauge-bar { width: 100%; height: 12px; background: var(--c4); border-radius: 100px; overflow: hidden; margin-top: .5rem; }
+    .gauge-fill { height: 100%; background: var(--c2); border-radius: 100px; transition: width .8s ease; }
+    .gauge-fill.warning { background: #E0C039; }
+    .gauge-fill.danger  { background: var(--c7); }
+
+    @media (max-width: 700px) {
+      .charts-grid, .tops-grid { grid-template-columns: 1fr; }
+      .chart-card.full { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <a href="{% url 'dashboard_gestionnaire' %}" class="header-brand">⬡ GestioLab</a>
+  <nav class="header-nav">
+    <a href="{% url 'liste_equipements' %}">Équipements</a>
+    <a href="{% url 'liste_contacts' %}">Contacts</a>
+    <a href="{% url 'statistiques:tableau_bord' %}" class="active">📊 Statistiques</a>
+  </nav>
+  <div class="header-right">
+    <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
+    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Déconnexion</a>
+  </div>
+</header>
+
+<div class="messages-container">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+
+<div class="page-wrapper">
+
+  <!-- En-tête page -->
+  <div class="page-title-bar">
+    <div class="page-title">📊 Tableau de bord statistique</div>
+    <div class="page-actions">
+      <a href="{% url 'statistiques:filtrage_equipements' %}" class="btn btn-outline">🔍 Filtrage équipements</a>
+      <a href="{% url 'statistiques:filtrage_emprunts' %}" class="btn btn-outline">🔍 Filtrage emprunts</a>
+    </div>
+  </div>
+
+  <!-- Accès rapide filtrage -->
+  <div class="quick-nav">
+    <a href="{% url 'statistiques:filtrage_equipements' %}" class="quick-nav-card">
+      <span class="quick-nav-icon">📦</span>
+      <div class="quick-nav-text">
+        <div class="qn-title">Filtrage avancé équipements</div>
+        <div class="qn-desc">Recherche multi-critères, tri, plage de dates</div>
+      </div>
+    </a>
+    <a href="{% url 'statistiques:filtrage_emprunts' %}" class="quick-nav-card">
+      <span class="quick-nav-icon">📋</span>
+      <div class="quick-nav-text">
+        <div class="qn-title">Filtrage avancé emprunts</div>
+        <div class="qn-desc">Par bénéficiaire, état, retard, période</div>
+      </div>
+    </a>
+  </div>
+
+  <!-- ── SECTION : ÉQUIPEMENTS ── -->
+  <div class="stats-section-title">📦 Équipements</div>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Total</div>
+      <div class="kpi-value">{{ total_eq }}</div>
+      <div class="kpi-sub">équipements actifs</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Disponibles</div>
+      <div class="kpi-value" style="color:#065f46">{{ total_disponible }}</div>
+    </div>
+    <div class="kpi-card warning">
+      <div class="kpi-label">Empruntés</div>
+      <div class="kpi-value">{{ total_emprunte }}</div>
+    </div>
+    <div class="kpi-card info">
+      <div class="kpi-label">Maintenance</div>
+      <div class="kpi-value">{{ total_maintenance }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Retirés</div>
+      <div class="kpi-value" style="color:var(--c5)">{{ total_retire }}</div>
+      <div class="kpi-sub">inactifs</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Catégories</div>
+      <div class="kpi-value">{{ total_categories }}</div>
+    </div>
+    <div class="kpi-card {% if taux_dispo >= 70 %}{% elif taux_dispo >= 40 %}warning{% else %}danger{% endif %}">
+      <div class="kpi-label">Taux dispo</div>
+      <div class="kpi-value">{{ taux_dispo }}%</div>
+      <div class="gauge-bar"><div class="gauge-fill {% if taux_dispo >= 70 %}{% elif taux_dispo >= 40 %}warning{% else %}danger{% endif %}" style="width:{{ taux_dispo }}%"></div></div>
+    </div>
+  </div>
+
+  <!-- ── SECTION : CONTACTS ── -->
+  <div class="stats-section-title">👥 Contacts</div>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Total contacts</div>
+      <div class="kpi-value">{{ total_contacts }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Étudiants</div>
+      <div class="kpi-value">{{ contacts_etudiant }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Enseignants</div>
+      <div class="kpi-value">{{ contacts_enseignant }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Personnel</div>
+      <div class="kpi-value">{{ contacts_personnel }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Externes</div>
+      <div class="kpi-value">{{ contacts_externe }}</div>
+    </div>
+  </div>
+
+  <!-- ── SECTION : EMPRUNTS ── -->
+  <div class="stats-section-title">📋 Emprunts</div>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Total</div>
+      <div class="kpi-value">{{ total_emprunts }}</div>
+    </div>
+    <div class="kpi-card warning">
+      <div class="kpi-label">En cours</div>
+      <div class="kpi-value">{{ emprunts_en_cours }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Retournés</div>
+      <div class="kpi-value" style="color:#065f46">{{ emprunts_retournes }}</div>
+    </div>
+    <div class="kpi-card danger">
+      <div class="kpi-label">En retard</div>
+      <div class="kpi-value">{{ emprunts_en_retard }}</div>
+      <div class="kpi-sub">délai dépassé</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Expirés</div>
+      <div class="kpi-value" style="color:var(--c5)">{{ emprunts_expires }}</div>
+    </div>
+    <div class="kpi-card info">
+      <div class="kpi-label">Planifiés</div>
+      <div class="kpi-value">{{ emprunts_planifies }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Validés</div>
+      <div class="kpi-value">{{ emprunts_valides }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Annulés</div>
+      <div class="kpi-value" style="color:var(--c5)">{{ emprunts_annules }}</div>
+    </div>
+  </div>
+
+  <!-- ── GRAPHIQUES ── -->
+  <div class="stats-section-title">📈 Graphiques</div>
+  <div class="charts-grid">
+
+    <!-- Graphique 1 : Répartition équipements par état (Doughnut) -->
+    <div class="chart-card">
+      <div class="chart-title">🟢 État des équipements</div>
+      <div class="chart-container">
+        <canvas id="chartEtat"></canvas>
+      </div>
+    </div>
+
+    <!-- Graphique 2 : Répartition contacts par type (Pie) -->
+    <div class="chart-card">
+      <div class="chart-title">👥 Contacts par type</div>
+      <div class="chart-container">
+        <canvas id="chartContacts"></canvas>
+      </div>
+    </div>
+
+    <!-- Graphique 3 : Emprunts par mois (Bar — pleine largeur) -->
+    <div class="chart-card full">
+      <div class="chart-title">📅 Emprunts par mois (6 derniers mois)</div>
+      <div class="chart-container" style="height:300px">
+        <canvas id="chartMois"></canvas>
+      </div>
+    </div>
+
+    <!-- Graphique 4 : Top catégories (Bar horizontal) -->
+    <div class="chart-card full">
+      <div class="chart-title">📦 Équipements par catégorie</div>
+      <div class="chart-container" style="height:300px">
+        <canvas id="chartCategorie"></canvas>
+      </div>
+    </div>
+
+    <!-- Graphique 5 : États des emprunts (Doughnut) -->
+    <div class="chart-card">
+      <div class="chart-title">📋 États des emprunts</div>
+      <div class="chart-container">
+        <canvas id="chartEtatsEmprunts"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── TOPS ── -->
+  <div class="stats-section-title">🏆 Classements</div>
+  <div class="tops-grid">
+
+    <!-- Top catégories -->
+    <div class="top-card">
+      <div class="top-card-title">📦 Top 5 catégories</div>
+      {% for cat in top_categories %}
+      <div class="top-row">
+        <div class="top-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
+          {{ forloop.counter }}
+        </div>
+        <div class="top-name">{{ cat.nom }}</div>
+        <span class="top-badge">{{ cat.nb }} éq.</span>
+      </div>
+      {% empty %}
+      <p style="color:var(--c5); font-size:.88rem; text-align:center; padding:1rem">Aucune catégorie.</p>
+      {% endfor %}
+    </div>
+
+    <!-- Top emprunteurs -->
+    <div class="top-card">
+      <div class="top-card-title">🏅 Top 5 emprunteurs</div>
+      {% for contact in top_emprunteurs %}
+      <div class="top-row">
+        <div class="top-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
+          {{ forloop.counter }}
+        </div>
+        <div class="top-name">{{ contact.prenom }} {{ contact.nom }} <span style="font-weight:400;color:var(--c5);font-size:.78rem">({{ contact.type_contact }})</span></div>
+        <span class="top-badge">{{ contact.nb_emprunts }}</span>
+      </div>
+      {% empty %}
+      <p style="color:var(--c5); font-size:.88rem; text-align:center; padding:1rem">Aucun emprunt enregistré.</p>
+      {% endfor %}
+    </div>
+
+  </div>
+
+</div><!-- /page-wrapper -->
+
+<script>
+// ── Données injectées depuis Django ──────────────────────────────────────────
+const labelsMois    = {{ labels_mois_json|safe }};
+const dataMois      = {{ data_mois_json|safe }};
+const etatsLabels   = {{ etats_labels_json|safe }};
+const etatsData     = {{ etats_data_json|safe }};
+
+// Palette de couleurs projet
+const C2  = '#56A361';
+const C2L = '#B3DEB7';
+const C4  = '#DFEDD9';
+const C7  = '#601C1D';
+const WARN= '#E0C039';
+const INFO= '#3b82f6';
+const GREY= '#A5A5A5';
+
+const CHART_DEFAULTS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { labels: { font: { family: 'Manrope', size: 13 }, color: '#010101' } } }
+};
+
+// ── 1. Graphique état équipements (via API JSON) ─────────────────────────────
+fetch("{% url 'statistiques:api_eq_etat' %}")
+  .then(r => r.json())
+  .then(d => {
+    new Chart(document.getElementById('chartEtat'), {
+      type: 'doughnut',
+      data: {
+        labels: d.labels,
+        datasets: [{ data: d.data, backgroundColor: d.colors, borderWidth: 2, borderColor: '#fff' }]
+      },
+      options: { ...CHART_DEFAULTS, cutout: '60%' }
+    });
+  });
+
+// ── 2. Graphique contacts par type (via API JSON) ────────────────────────────
+fetch("{% url 'statistiques:api_contacts_type' %}")
+  .then(r => r.json())
+  .then(d => {
+    new Chart(document.getElementById('chartContacts'), {
+      type: 'pie',
+      data: {
+        labels: d.labels,
+        datasets: [{ data: d.data, backgroundColor: [C2, '#3d7a48', C2L, GREY], borderWidth: 2, borderColor: '#fff' }]
+      },
+      options: CHART_DEFAULTS
+    });
+  });
+
+// ── 3. Graphique emprunts par mois (données Django inline) ───────────────────
+new Chart(document.getElementById('chartMois'), {
+  type: 'bar',
+  data: {
+    labels: labelsMois,
+    datasets: [{
+      label: 'Emprunts',
+      data: dataMois,
+      backgroundColor: C2L,
+      borderColor: C2,
+      borderWidth: 2,
+      borderRadius: 8,
+    }]
+  },
+  options: {
+    ...CHART_DEFAULTS,
+    scales: {
+      y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f0f0f0' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── 4. Graphique catégories (via API JSON) ───────────────────────────────────
+fetch("{% url 'statistiques:api_eq_categorie' %}")
+  .then(r => r.json())
+  .then(d => {
+    new Chart(document.getElementById('chartCategorie'), {
+      type: 'bar',
+      data: {
+        labels: d.labels,
+        datasets: [{
+          label: 'Équipements',
+          data: d.data,
+          backgroundColor: C2,
+          borderRadius: 8,
+        }]
+      },
+      options: {
+        ...CHART_DEFAULTS,
+        indexAxis: 'y',
+        scales: {
+          x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f0f0f0' } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+  });
+
+// ── 5. États des emprunts (données inline Django) ────────────────────────────
+const etatsColors = [WARN, C2, C2, C2L, C7, GREY];
+new Chart(document.getElementById('chartEtatsEmprunts'), {
+  type: 'doughnut',
+  data: {
+    labels: etatsLabels,
+    datasets: [{ data: etatsData, backgroundColor: etatsColors, borderWidth: 2, borderColor: '#fff' }]
+  },
+  options: { ...CHART_DEFAULTS, cutout: '55%' }
+});
+</script>
+
+</body>
+</html>
