@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Confirmer le rejet{% endblock %}
+
+{% block content %}
+<div class="container mt-4" style="max-width:500px;">
+  <h2>✘ Confirmer le rejet</h2>
+  <p>Voulez-vous vraiment rejeter l'emprunt <strong>#{{ emprunt.pk }}</strong> de <strong>{{ emprunt.beneficiaire }}</strong> ?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Oui, rejeter</button>
+    <a href="{% url 'liste_emprunts_planifies' %}" class="btn btn-outline-secondary ms-2">Annuler</a>
+  </form>
+</div>
+{% endblock %}

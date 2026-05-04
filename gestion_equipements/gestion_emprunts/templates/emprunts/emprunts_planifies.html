@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Emprunts à valider{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <h2>⏳ Emprunts planifiés — En attente de validation</h2>
+  <p class="text-muted">Seul l'administrateur peut valider ou rejeter ces demandes.</p>
+
+  {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+      {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+
+  {% if emprunts %}
+  <table class="table table-bordered table-hover align-middle">
+    <thead class="table-warning">
+      <tr>
+        <th>#</th>
+        <th>Bénéficiaire</th>
+        <th>Objet</th>
+        <th>Date emprunt</th>
+        <th>Retour prévu</th>
+        <th>Équipements</th>
+        <th>Créé par</th>
+        <th class="text-center">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in emprunts %}
+      <tr>
+        <td>{{ e.pk }}</td>
+        <td>{{ e.beneficiaire }}</td>
+        <td>{{ e.objet_demande }}</td>
+        <td>{{ e.date_emprunt }}</td>
+        <td>{{ e.date_retour_prevue }}</td>
+        <td>
+          {% for eq in e.equipements.all %}
+            <span class="badge bg-secondary">{{ eq.nom }}</span>
+          {% empty %}<span class="text-muted">—</span>{% endfor %}
+        </td>
+        <td>{{ e.cree_par.nom|default:"—" }}</td>
+        <td class="text-center">
+          <form method="post" action="{% url 'valider_emprunt' e.pk %}" style="display:inline"
+                onsubmit="return confirm('Valider l\'emprunt #{{ e.pk }} ?')">
+            {% csrf_token %}
+            <button class="btn btn-success btn-sm">✔ Valider</button>
+          </form>
+          <form method="post" action="{% url 'rejeter_emprunt' e.pk %}" style="display:inline"
+                onsubmit="return confirm('Rejeter l\'emprunt #{{ e.pk }} ?')">
+            {% csrf_token %}
+            <button class="btn btn-danger btn-sm">✘ Rejeter</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% else %}
+    <div class="alert alert-success">✅ Aucun emprunt en attente de validation.</div>
+  {% endif %}
+
+  <a href="{% url 'liste_emprunts' %}" class="btn btn-outline-secondary mt-2">← Retour</a>
+</div>
+{% endblock %}

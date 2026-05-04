@@ -1,0 +1,28 @@
+#Environnements virtuel
+env/
+
+#fichiers python compiles
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Fichiers de configuration locale et secrets
+.env
+db.sqlite3
+secrets.json
+
+# Dossiers de médias et fichiers statiques générés
+media/
+staticfiles/
+static_root/
+
+# Configuration de l'IDE (VS Code, PyCharm)
+.vscode/
+.idea/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log 
