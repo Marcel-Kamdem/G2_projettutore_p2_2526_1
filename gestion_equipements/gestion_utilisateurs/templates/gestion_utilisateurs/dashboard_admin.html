@@ -22,7 +22,10 @@
         <main class="main">
             <section class="main-top">
                 <h3 class="main-top_title">Administrator Dashboard</h3>
-                <button class="cta"><a href="{% url 'creer_gestionnaire' %}">Add New Manager</a></button>
+                <a href="{% url 'creer_gestionnaire' %}" class="cta">Add New Manager</a>
+                <a href="{% url 'loan_list' %}" class="cta">Loan List</a>
+                <a href="{% url 'loan_planning' %}" class="cta">Loan Planning</a>
+        
             </section>
 
             <section class="cards-list">

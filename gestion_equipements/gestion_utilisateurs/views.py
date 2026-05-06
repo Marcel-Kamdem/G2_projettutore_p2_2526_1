@@ -5,6 +5,7 @@ from django.contrib import messages
 from .forms import LoginForm, GestionnaireCreationForm, ModifierMotDePasseForm
 from .models import Administrateur, Gestionnaire
 from django.http import JsonResponse
+from emprunt.models import Emprunt
 
 
 def index(request):
@@ -34,24 +35,36 @@ def login_view(request):
 
 @login_required
 def dashboard_admin(request):
-    # (Grâce à mon héritage, je vérifie s'il existe dans la table Administrateur)
     if not hasattr(request.user, 'administrateur'):
-        return redirect('login') 
-        
-    # On récupère tous les gestionnaires pour les afficher
+        return redirect('login')
+
     liste_gestionnaires = Gestionnaire.objects.all()
+
     total_des_gestionnaires = Gestionnaire.objects.count()
-    gestionnaires_actif = Gestionnaire.objects.filter(is_active = True).count()
-    gestionnaires_inactif = Gestionnaire.objects.filter(is_active = False).count()
+    gestionnaires_actif = Gestionnaire.objects.filter(is_active=True).count()
+    gestionnaires_inactif = Gestionnaire.objects.filter(is_active=False).count()
+
+    emprunts = Emprunt.objects.all().order_by('-id')  # ou -date_creation si tu as ce champ
+
+    planifications = Emprunt.objects.filter(etat="PLANIFIE").order_by('-id')
+    emprunts_en_cours = Emprunt.objects.filter(etat="EN_COURS")
+    emprunts_valide = Emprunt.objects.filter(etat="VALIDE")
+    emprunts_refuse = Emprunt.objects.filter(etat="REFUSE")
+
     context = {
         'admin': request.user,
         'gestionnaires': liste_gestionnaires,
         'total_gestionnaires': total_des_gestionnaires,
-        'gestionnaires_actif' : gestionnaires_actif,
-        'gestionnaires_inactif' : gestionnaires_inactif
+        'gestionnaires_actif': gestionnaires_actif,
+        'gestionnaires_inactif': gestionnaires_inactif,
+        'emprunts': emprunts,
+        'planifications': planifications,
+        'emprunts_en_cours': emprunts_en_cours,
+        'emprunts_valide': emprunts_valide,
+        'emprunts_refuse': emprunts_refuse,
     }
-    return render(request, 'gestion_utilisateurs/dashboard_admin.html', context)
 
+    return render(request, 'gestion_utilisateurs/dashboard_admin.html', context)
 
 @login_required
 def dashboard_gestionnaire(request):
@@ -135,3 +148,78 @@ def modifier_mot_de_passe(request):
     else:
         form = ModifierMotDePasseForm(request.user)
     return render(request, 'gestion_utilisateurs/modifier_mot_de_passe.html', {'form': form})
+
+@login_required
+def liste_emprunts(request):
+    query = request.GET.get('q', '')
+    etat_filtre = request.GET.get('etat', '')
+
+    emprunts = EmpruntService.liste_emprunts(query, etat_filtre)
+    emprunts = emprunts.exclude(etat="EN_ATTENTE")
+    stats = EmpruntService.stats_emprunts()
+
+    context = {
+        'emprunts': emprunts,
+        'query': query,
+        'etat_filtre': etat_filtre,
+        'stats': stats,
+        'etats': Emprunt.EMPRUNT_STATE,
+    }
+    return render(request, "emprunt/liste.html", context)
+
+
+@login_required
+def liste_planifications(request):
+    if not hasattr(request.user, 'administrateur'):
+        return redirect('dashboard_gestionnaire')
+
+    planifications = Emprunt.objects.filter(etat="PLANIFIE")
+
+    return render(request, 'emprunt/planifications.html', {
+        'planifications': planifications
+    })
+
+@login_required
+def valider_planification(request, pk):
+    if not hasattr(request.user, 'administrateur'):
+        return redirect('dashboard_gestionnaire')
+
+    emprunt = get_object_or_404(Emprunt, pk=pk)
+    emprunt.etat = "VALIDE"
+    emprunt.save()
+
+    return redirect('liste_planifications')
+
+@login_required
+def refuser_planification(request, pk):
+    if not hasattr(request.user, 'administrateur'):
+        return redirect('dashboard_gestionnaire')
+
+    emprunt = get_object_or_404(Emprunt, pk=pk)
+    emprunt.etat = "REFUSE"
+    emprunt.save()
+
+    return redirect('liste_planifications')
+
+@login_required
+def passer_en_cours(request, pk):
+    if not hasattr(request.user, 'administrateur'):
+        return redirect('dashboard_gestionnaire')
+
+    emprunt = get_object_or_404(Emprunt, pk=pk)
+    emprunt.etat = "EN_COURS"
+    emprunt.save()
+
+    return redirect('liste_planifications')
+
+@login_required
+def loan_list(request):
+    emprunts = Emprunt.objects.all()
+    print(emprunts)
+    return render(request, 'gestion_utilisateurs/listeA.html', {'emprunts': emprunts})
+
+
+@login_required
+def loan_planning(request):
+    planifications = Emprunt.objects.filter(etat="PLANIFIE")
+    return render(request, 'gestion_utilisateurs/planificationsA.html', {'planifications': planifications})

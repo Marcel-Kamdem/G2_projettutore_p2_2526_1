@@ -1,4 +1,3 @@
-/* reset */
 *{
     box-sizing: border-box;
     padding: 0;
@@ -44,7 +43,7 @@
 .bouton{
     background-color: #d2d2d2;
     border-radius: 200px;
-    width: 60px;
+    width: 55px;
     height: 30px;
     cursor: pointer;
     position: relative;
@@ -116,7 +115,7 @@ p{
     color: var(--color-3);
     width: 100%;
     height: 3.450rem;
-    border-radius: 100px;
+    border-radius: 40px;
     box-shadow: 4px 5px 5px 0px var(--color-5);
 }
 
@@ -236,21 +235,4 @@ tbody tr:hover{
         align-items: center;
         padding-block: 35px;
     }
-
-    .cards-list{
-        display: flex;
-        flex-direction: row;
-        gap: 15px;
-    }
-
-    .main-top_title{
-        font: var(--h3);
-    }
-
-}
-
-@media (max-width: 1000px) {
-    td{
-        min-width: 15rem;
-    }
-}
+ }
