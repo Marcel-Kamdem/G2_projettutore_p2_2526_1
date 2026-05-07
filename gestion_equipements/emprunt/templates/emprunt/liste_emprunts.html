@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-admin.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&display=swap" rel="stylesheet">
+    <title>Liste des emprunts</title>
+    <style>
+        .table-wrapper {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #56ab85; color: #fff; }
+        th, td { padding: 13px 16px; text-align: left; border-bottom: 1px solid #eee; }
+        tbody tr:hover { background: #f8f9fa; }
+        .badge {
+            padding: 4px 12px; border-radius: 20px;
+            font-size: 0.82rem; font-weight: 600; display: inline-block;
+        }
+        .badge-attente   { background: #fff3cd; color: #856404; }
+        .badge-valide    { background: #d4edda; color: #155724; }
+        .badge-refuse    { background: #f8d7da; color: #721c24; }
+        .badge-encours   { background: #cce5ff; color: #004085; }
+        .badge-retourne  { background: #e2e3e5; color: #383d41; }
+        .badge-expire    { background: #f8d7da; color: #721c24; }
+        .badge-annule    { background: #e2e3e5; color: #383d41; }
+        .badge-planifie  { background: #cce5ff; color: #004085; }
+
+        .btn-modifier {
+            background: #56ab85; color: white;
+            padding: 6px 14px; border-radius: 5px;
+            text-decoration: none; font-size: 0.82rem; font-weight: 600;
+        }
+        .btn-modifier:hover { background: #459970; }
+        .btn-lock {
+            background: #e0e0e0; color: #999;
+            padding: 6px 14px; border-radius: 5px;
+            font-size: 0.82rem; cursor: not-allowed;
+        }
+        .empty-msg { text-align:center; padding:50px; color:#aaa; }
+        .messages { margin-bottom: 12px; }
+        .msg-success { color: #155724; background: #d4edda; padding:10px; border-radius:4px; margin-bottom:8px; }
+        .msg-error   { color: #721c24; background: #f8d7da; padding:10px; border-radius:4px; margin-bottom:8px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div style="width:1px"></div>
+        <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil" width="50px" height="50px" class="profil-img">
+        <a href="{% url 'logout' %}"><img src="{% static 'assets/img/icone/logout.svg' %}" alt="logout"></a>
+    </header>
+
+    <div class="container">
+        <main class="main">
+            <section class="main-top">
+                <h3 class="main-top_title">Liste des emprunts</h3>
+                <div style="display:flex;gap:10px;">
+                    {% if user.is_staff %}
+                    <button class="cta">
+                        <a href="{% url 'validation_admin' %}" style="text-decoration:none;color:inherit;">
+                            🔔 Valider des emprunts
+                        </a>
+                    </button>
+                    {% endif %}
+                    <button class="cta">
+                        <a href="{% url 'dashboard_admin' %}" style="text-decoration:none;color:inherit;">Dashboard</a>
+                    </button>
+                </div>
+            </section>
+
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <p class="msg-{{ message.tags }}">{{ message }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Bénéficiaire</th>
+                            <th>Objet</th>
+                            <th>Date emprunt</th>
+                            <th>Retour prévu</th>
+                            <th>État</th>
+                            <th>Modifier</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for emprunt in emprunts %}
+                        <tr>
+                            <td><b>#{{ emprunt.pk }}</b></td>
+                            <td>{{ emprunt.beneficiaire }}</td>
+                            <td>{{ emprunt.object_dmd }}</td>
+                            <td>{{ emprunt.date_empr|date:"d/m/Y" }}</td>
+                            <td>{{ emprunt.date_retour_prevu|date:"d/m/Y" }}</td>
+                            <td>
+                                <span class="badge badge-{{ emprunt.etat|lower|cut:' ' }}">
+                                    {{ emprunt.etat }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if emprunt.etat not in "Retourné,Annulé,Expiré" %}
+                                    <a href="{% url 'modifier_emprunt' emprunt.pk %}" class="btn-modifier">✏️ Modifier</a>
+                                {% else %}
+                                    <span class="btn-lock">🔒 Fermé</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="empty-msg">Aucun emprunt enregistré.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-admin.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&display=swap" rel="stylesheet">
+    <title>Validation des emprunts – Admin</title>
+    <style>
+        .page-title { color: #56ab85; font-family: 'League Spartan', sans-serif; }
+        .table-wrapper {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #56ab85; color: #fff; }
+        th, td { padding: 13px 16px; text-align: left; border-bottom: 1px solid #eee; }
+        tbody tr:hover { background: #f8f9fa; }
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .badge-attente  { background: #fff3cd; color: #856404; }
+        .badge-planifie { background: #cce5ff; color: #004085; }
+        .btn-valider {
+            background: #28a745; color: white;
+            border: none; padding: 7px 16px;
+            border-radius: 5px; cursor: pointer;
+            font-size: 0.85rem; font-weight: 600;
+            text-decoration: none; margin-right: 6px;
+        }
+        .btn-valider:hover { background: #1e7e34; }
+        .btn-refuser {
+            background: #dc3545; color: white;
+            border: none; padding: 7px 16px;
+            border-radius: 5px; cursor: pointer;
+            font-size: 0.85rem; font-weight: 600;
+            text-decoration: none;
+        }
+        .btn-refuser:hover { background: #c82333; }
+        .empty-msg { text-align: center; padding: 50px; color: #aaa; font-size: 1rem; }
+        .count-banner {
+            background: #e8f5e9;
+            border-left: 4px solid #56ab85;
+            padding: 12px 18px;
+            margin-bottom: 16px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #2e7d32;
+        }
+        .messages { margin-bottom: 12px; }
+        .msg-success { color: #155724; background: #d4edda; padding: 10px; border-radius: 4px; margin-bottom: 8px; }
+        .msg-warning { color: #856404; background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 8px; }
+        .msg-error   { color: #721c24; background: #f8d7da; padding: 10px; border-radius: 4px; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div style="width:1px"></div>
+        <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil" width="50px" height="50px" class="profil-img">
+        <a href="{% url 'logout' %}"><img src="{% static 'assets/img/icone/logout.svg' %}" alt="logout"></a>
+    </header>
+
+    <div class="container">
+        <main class="main">
+            <section class="main-top">
+                <h3 class="main-top_title page-title">Validation des emprunts</h3>
+                <button class="cta">
+                    <a href="{% url 'dashboard_admin' %}" style="text-decoration:none;color:inherit;">← Dashboard</a>
+                </button>
+            </section>
+
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <p class="msg-{{ message.tags }}">{{ message }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="count-banner">
+                📋 {{ emprunts|length }} emprunt(s) en attente de validation
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Bénéficiaire</th>
+                            <th>Objet</th>
+                            <th>Date emprunt</th>
+                            <th>Retour prévu</th>
+                            <th>Équipements</th>
+                            <th>État</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for emprunt in emprunts %}
+                        <tr>
+                            <td><b>#{{ emprunt.pk }}</b></td>
+                            <td>{{ emprunt.beneficiaire }}</td>
+                            <td>{{ emprunt.object_dmd }}</td>
+                            <td>{{ emprunt.date_empr|date:"d/m/Y" }}</td>
+                            <td>{{ emprunt.date_retour_prevu|date:"d/m/Y" }}</td>
+                            <td>
+                                {% for eq in emprunt.equipements.all %}
+                                    {{ eq.nom }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    <span style="color:#aaa;">–</span>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% if emprunt.etat == "En attente" %}
+                                    <span class="badge badge-attente">En attente</span>
+                                {% else %}
+                                    <span class="badge badge-planifie">{{ emprunt.etat }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'valider_emprunt' emprunt.pk %}" class="btn-valider">✅ Valider</a>
+                                <a href="{% url 'refuser_emprunt' emprunt.pk %}" class="btn-refuser">❌ Refuser</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="empty-msg">
+                                ✅ Aucun emprunt en attente de validation.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

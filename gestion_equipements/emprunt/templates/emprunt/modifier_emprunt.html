@@ -1,0 +1,205 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-admin.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&display=swap" rel="stylesheet">
+    <title>Modifier l'emprunt</title>
+    <style>
+        .form-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 30px 40px;
+            max-width: 600px;
+            margin: 30px auto;
+        }
+        .form-card h2 {
+            color: #56ab85;
+            margin-bottom: 20px;
+            font-family: 'League Spartan', sans-serif;
+        }
+        .form-row {
+            margin-bottom: 18px;
+        }
+        .form-row label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #333;
+        }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+        }
+        .form-input:focus, .form-select:focus {
+            border-color: #56ab85;
+            outline: none;
+        }
+        /* Champs en lecture seule (non modifiables) */
+        .readonly-field {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px 14px;
+            color: #666;
+            font-size: 0.95rem;
+        }
+        .readonly-label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #999;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .lock-icon {
+            font-size: 0.8rem;
+            background: #f0f0f0;
+            padding: 2px 7px;
+            border-radius: 10px;
+            color: #999;
+        }
+        .info-banner {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+            color: #856404;
+        }
+        .btn-submit {
+            background: #56ab85;
+            color: white;
+            border: none;
+            padding: 11px 28px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-submit:hover { background: #459970; }
+        .btn-cancel {
+            background: #e0e0e0;
+            color: #333;
+            border: none;
+            padding: 11px 28px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-left: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-cancel:hover { background: #ccc; }
+        .messages { margin-bottom: 16px; }
+        .msg-error   { color: #dc3545; background: #f8d7da; padding: 10px; border-radius: 4px; }
+        .msg-success { color: #155724; background: #d4edda; padding: 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div style="width:1px"></div>
+        <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil" width="50px" height="50px" class="profil-img">
+        <a href="{% url 'logout' %}"><img src="{% static 'assets/img/icone/logout.svg' %}" alt="logout"></a>
+    </header>
+
+    <div class="container">
+        <main class="main">
+            <section class="main-top">
+                <h3 class="main-top_title">Modifier l'emprunt</h3>
+                <button class="cta"><a href="{% url 'liste_emprunts' %}" style="text-decoration:none;color:inherit;">← Retour à la liste</a></button>
+            </section>
+
+            <div class="form-card">
+                <h2>Modification de l'emprunt #{{ emprunt.pk }}</h2>
+
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <p class="msg-{{ message.tags }}">{{ message }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="info-banner">
+                    ⚠️ Selon les règles de gestion (RG.04), seuls la <strong>date d'emprunt</strong>
+                    et le <strong>bénéficiaire</strong> peuvent être modifiés.
+                    Les autres champs sont verrouillés.
+                </div>
+
+                <!-- ── Champs VERROUILLÉS (lecture seule, affichés pour info) ── -->
+                <div class="form-row">
+                    <div class="readonly-label">
+                        Objet de la demande <span class="lock-icon">🔒 non modifiable</span>
+                    </div>
+                    <div class="readonly-field">{{ emprunt.object_dmd }}</div>
+                </div>
+
+                <div class="form-row">
+                    <div class="readonly-label">
+                        Date de retour prévue <span class="lock-icon">🔒 non modifiable</span>
+                    </div>
+                    <div class="readonly-field">{{ emprunt.date_retour_prevu|date:"d/m/Y" }}</div>
+                </div>
+
+                <div class="form-row">
+                    <div class="readonly-label">
+                        Équipements liés <span class="lock-icon">🔒 non modifiable</span>
+                    </div>
+                    <div class="readonly-field">
+                        {% for eq in emprunt.equipements.all %}
+                            {{ eq.nom }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            Aucun équipement lié
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="readonly-label">
+                        État actuel <span class="lock-icon">🔒 non modifiable ici</span>
+                    </div>
+                    <div class="readonly-field">{{ emprunt.etat }}</div>
+                </div>
+
+                <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+
+                <!-- ── Champs MODIFIABLES ── -->
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="form-row">
+                        <label for="{{ form.date_empr.id_for_label }}">Date d'emprunt ✏️</label>
+                        {{ form.date_empr }}
+                        {% if form.date_empr.errors %}
+                            <small style="color:red;">{{ form.date_empr.errors }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-row">
+                        <label for="{{ form.beneficiaire.id_for_label }}">Bénéficiaire ✏️</label>
+                        {{ form.beneficiaire }}
+                        {% if form.beneficiaire.errors %}
+                            <small style="color:red;">{{ form.beneficiaire.errors }}</small>
+                        {% endif %}
+                    </div>
+
+                    <div style="margin-top:24px;">
+                        <button type="submit" class="btn-submit">💾 Enregistrer</button>
+                        <a href="{% url 'liste_emprunts' %}" class="btn-cancel">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
