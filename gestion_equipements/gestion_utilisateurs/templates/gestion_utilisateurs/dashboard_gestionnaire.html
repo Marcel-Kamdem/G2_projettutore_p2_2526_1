@@ -35,6 +35,7 @@
     <a href="{% url 'liste_equipements' %}">Équipements</a>
     <a href="{% url 'liste_contacts' %}">Contacts</a>
     <a href="{% url 'liste_emprunts' %}">Emprunts</a>
+    <a href="{% url 'statistiques:tableau_bord' %}">📊 Statistiques</a>
   </nav>
   <div class="header-right">
     <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
@@ -89,6 +90,7 @@
       <a href="{% url 'importer_equipements' %}" class="btn btn-outline">⬆ Importer équipements</a>
       <a href="{% url 'importer_contacts' %}" class="btn btn-outline">⬆ Importer contacts</a>
       <a href="{% url 'modifier_mot_de_passe' %}" class="btn btn-outline">🔑 Changer mot de passe</a>
+      <a href="{% url 'statistiques:tableau_bord' %}" class="btn btn-outline">📊 Statistiques</a>
     </div>
   </div>
 </div>
