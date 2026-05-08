@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planifications — GestioLab</title>
+
+  <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modules.css' %}">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<header class="header">
+  <a href="#" class="header-brand">⬡ GestioLab</a>
+
+  <div class="header-right">
+    <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
+    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Déconnexion</a>
+  </div>
+</header>
+
+<div class="messages-container">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+
+<div class="page-wrapper">
+
+  <div class="page-title-bar">
+    <h1 class="page-title">📌 Planifications en attente</h1>
+    <div class="page-actions">
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-scroll">
+
+      {% if planifications %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Bénéficiaire</th>
+            <th>Objet</th>
+            <th>Date emprunt</th>
+            <th>Date retour prévue</th>
+            <th>Équipement</th>
+            <th>Statut</th>
+            <th>Actions admin</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for p in planifications %}
+          <tr>
+
+            <td>
+              <strong>{{ p.beneficiaire.nom_complet }}</strong>
+            </td>
+
+            <td>{{ p.object_dmd }}</td>
+
+            <td>{{ p.date_empr }}</td>
+            <td>{{ p.date_retour_prevu }}</td>
+
+            <td style="font-size:.82rem">
+              {% for eq in emprunts.all %}
+                <span style="display:inline-block;margin:.1rem .2rem .1rem 0;padding:.15rem .5rem;background:var(--c4);border-radius:4px;font-family:monospace">
+                  {{ eq.equipement.reference }}
+                </span>
+              {% empty %}
+                —
+              {% endfor %}
+            </td>
+
+            <td>
+              <span class="badge" style="background:#f59e0b;color:white">
+                {{ p.etat }}
+              </span>
+            </td>
+
+            <td>
+              <div class="td-actions">
+
+                {% if p.etat == "PLANIFIE" or p.etat == "EN_ATTENTE" %}
+
+                  <a href="{% url 'valider_planification' p.pk %}" class="btn btn-sm btn-green">
+                    ✔ Valider
+                  </a>
+
+                  <a href="{% url 'passer_en_cours' p.pk %}" class="btn btn-sm btn-outline">
+                    ⏳ En cours
+                  </a>
+
+                  <a href="{% url 'refuser_planification' p.pk %}" class="btn btn-sm btn-danger">
+                    ✖ Refuser
+                  </a>
+
+                {% else %}
+                  <button class="btn btn-sm btn-outline" disabled style="opacity:.4">
+                    Déjà traité
+                  </button>
+                {% endif %}
+
+              </div>
+            </td>
+
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <p>Aucune planification en attente.</p>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

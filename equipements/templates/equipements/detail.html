@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ equipement.nom }} — GestioLab</title>
+  <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modules.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="header">
+  <a href="#" class="header-brand">⬡ GestioLab</a>
+  <nav class="header-nav">
+    <a href="{% url 'liste_equipements' %}" class="active">Équipements</a>
+    <a href="{% url 'liste_contacts' %}">Contacts</a>
+  </nav>
+  <div class="header-right">
+    <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
+    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Déconnexion</a>
+  </div>
+</header>
+
+<div class="messages-container">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+
+<div class="page-wrapper">
+
+  <div class="page-title-bar">
+    <div>
+      <a href="{% url 'liste_equipements' %}" style="font-size:.85rem;color:var(--c5);text-decoration:none;">← Retour à la liste</a>
+      <h1 class="page-title" style="margin-top:.25rem">Fiche équipement</h1>
+    </div>
+    <div class="page-actions">
+      <a href="{% url 'modifier_equipement' equipement.pk %}" class="btn btn-green">✏ Modifier</a>
+      <a href="{% url 'retirer_equipement' equipement.pk %}" class="btn btn-danger">🗑 Retirer</a>
+    </div>
+  </div>
+
+  <div class="detail-card">
+    <div class="detail-header">
+      <div style="width:64px;height:64px;border-radius:var(--radius);background:var(--c2);display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0;">📦</div>
+      <div class="detail-header-info">
+        <h1>{{ equipement.nom }}</h1>
+        {% if equipement.reference %}
+          <code style="background:#0001;padding:.2rem .5rem;border-radius:4px;font-size:.85rem">{{ equipement.reference }}</code>
+        {% endif %}
+        <div class="detail-header-meta">
+          <span class="badge badge-{{ equipement.etat }}">{{ equipement.get_etat_display }}</span>
+          {% if equipement.categorie %}
+            <span class="badge" style="background:var(--c4);color:var(--c1)">{{ equipement.categorie.nom }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-body">
+      <div class="detail-grid">
+        <div class="detail-field">
+          <div class="field-label">Localisation</div>
+          <div class="field-value">{{ equipement.localisation|default:"Non renseigné" }}</div>
+        </div>
+        <div class="detail-field">
+          <div class="field-label">Date d'acquisition</div>
+          <div class="field-value">{{ equipement.date_acquisition|date:"d/m/Y"|default:"Non renseignée" }}</div>
+        </div>
+        <div class="detail-field">
+          <div class="field-label">Date d'ajout</div>
+          <div class="field-value">{{ equipement.date_ajout|date:"d/m/Y à H:i" }}</div>
+        </div>
+        <div class="detail-field">
+          <div class="field-label">Dernière modification</div>
+          <div class="field-value">{{ equipement.date_modification|date:"d/m/Y à H:i" }}</div>
+        </div>
+      </div>
+
+      {% if equipement.description %}
+      <div class="detail-notes" style="margin-top:1.5rem">
+        <div class="field-label">Description</div>
+        <p>{{ equipement.description }}</p>
+      </div>
+      {% endif %}
+
+      {% if equipement.notes %}
+      <div class="detail-notes">
+        <div class="field-label">Notes</div>
+        <p>{{ equipement.notes }}</p>
+      </div>
+      {% endif %}
+
+      {% if equipement.image %}
+      <div style="margin-top:1.5rem">
+        <div class="field-label" style="font-size:.75rem;font-weight:700;color:var(--c5);text-transform:uppercase;margin-bottom:.5rem">Image</div>
+        <img src="{{ equipement.image.url }}" alt="{{ equipement.nom }}" style="max-width:300px;border-radius:var(--radius);box-shadow:0 2px 8px #0002">
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

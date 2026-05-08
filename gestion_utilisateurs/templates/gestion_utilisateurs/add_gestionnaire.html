@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/reset.css'%}">
+    <link rel="stylesheet" href="{% static 'css/add_gestionnaire.css'%}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Roboto:wght@100..900&display=swap" rel="stylesheet">
+    <title>Gestion Equipement - Add New Manager</title>
+</head>
+<body>
+    {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="alert {{ message.tags }}">
+                    {{ message }}
+                    <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <div class="container">
+        <div class="hero-img"></div>
+        <div class="hero">
+            <h1 class="hero-title">Create New Manager</h1>
+            <p class="hero-description">
+                Log into your campus equipment account.
+            </p>
+            <form action="" method="post" class="login-form">
+                {% csrf_token %}
+                {{ form.username }}
+                <div class="form-field_row">
+                    {{ form.first_name }}
+                    {{ form.last_name }}
+                </div>
+                {{ form.email }}
+                {% if form.errors %}
+                    <div class="error_message">
+                        {% for field, errors in form.errors.items %}
+                            {% for error  in errors %}
+                                {{error}}
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error  in form.non_field_errors %}
+                            {{error}}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no_error_message"></div>
+                {% endif %}
+                <input type="submit" value="Create Manager" class="cta">
+            </form>
+            
+            <div class="log-section"><a href="{% url 'dashboard_admin' %}" class="log-section_link"> <- back </a></div>
+        </div>
+    </div>
+
+</body>
+</html>
