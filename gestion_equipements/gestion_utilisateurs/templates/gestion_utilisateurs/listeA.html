@@ -13,11 +13,6 @@
 
 <header class="header">
   <a href="#" class="header-brand">⬡ GestioLab</a>
-  <nav class="header-nav">
-    <a href="{% url 'liste_equipements' %}">Équipements</a>
-    <a href="{% url 'liste_contacts' %}">Contacts</a>
-    <a href="{% url 'liste_emprunts' %}" class="active">Emprunts</a>
-  </nav>
   <div class="header-right">
     <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
     <a href="{% url 'modifier_mot_de_passe' %}" class="btn btn-outline btn-sm">🔑 MDP</a>
@@ -35,51 +30,23 @@
 
   <div class="page-title-bar">
     <h1 class="page-title">📋 Emprunts</h1>
-    <div class="page-actions">
-      <a href="{% url 'importer_emprunts' %}" class="btn btn-outline">⬆ Importer Excel</a>
-      <a href="{% url 'creer_emprunt' %}" class="btn btn-primary">+ Ajouter</a>
-      <a href="{% url 'liste_planifications' %}" class="btn btn-primary">Planifications</a>
-    </div>
+  </div>
   </div>
 
-  <!-- Stats -->
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-label">Total</div>
-      <div class="stat-value">{{ stats.total }}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">En cours</div>
-      <div class="stat-value" style="color:#92400e">{{ stats.en_cours }}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Planifié</div>
-      <div class="stat-value" style="color:#1e40af">{{ stats.planifies }}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Retourné</div>
-      <div class="stat-value" style="color:#065f46">{{ stats.retournes }}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Expiré</div>
-      <div class="stat-value" style="color:#991b1b">{{ stats.expires }}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Annulé</div>
-      <div class="stat-value" style="color:var(--c5)">{{ stats.annules }}</div>
-    </div>
-  </div>
 
   <!-- Filtres -->
   <form method="GET" class="filter-bar">
     <input type="text" name="q" value="{{ query }}" placeholder="🔍 Rechercher par bénéficiaire, objet...">
+
     <select name="etat">
       <option value="">Tous les états</option>
       {% for val, label in etats %}
         <option value="{{ val }}" {% if etat_filtre == val %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
+
     <button type="submit" class="btn btn-green btn-search">Filtrer</button>
+
     {% if query or etat_filtre %}
       <a href="{% url 'liste_emprunts' %}" class="btn btn-outline">✕ Réinitialiser</a>
     {% endif %}
@@ -88,6 +55,7 @@
   <!-- Table -->
   <div class="table-card">
     <div class="table-scroll">
+
       {% if emprunts %}
       <table class="data-table">
         <thead>
@@ -96,49 +64,77 @@
             <th>Objet demandé</th>
             <th>Date emprunt</th>
             <th>Date retour prévue</th>
+            <th>Gestionnaire</th>
             <th>État</th>
             <th>Équipements</th>
-            <th>Actions</th>
+            <th>Notification</th>
           </tr>
         </thead>
+
         <tbody>
           {% for emprunt in emprunts %}
           <tr>
+
+            <!-- BÉNÉFICIAIRE -->
             <td>
               <div style="display:flex;align-items:center;gap:.65rem">
-                <div class="avatar">{{ emprunt.beneficiaire.prenom|first|upper }}{{ emprunt.beneficiaire.nom|first|upper }}</div>
+                <div class="avatar">
+                  {{ emprunt.beneficiaire.prenom|first|upper }}{{ emprunt.beneficiaire.nom|first|upper }}
+                </div>
                 <strong>{{ emprunt.beneficiaire.nom_complet }}</strong>
               </div>
             </td>
+
+            <!-- OBJET -->
             <td>{{ emprunt.object_dmd }}</td>
+
+            <!-- DATES -->
             <td>{{ emprunt.date_empr }}</td>
             <td>{{ emprunt.date_retour_prevu }}</td>
+
+            <!-- 🔥 GESTIONNAIRE (NOUVEAU) -->
+            <td>
+              {% if emprunt.beneficiaire %}
+                <span style="font-weight:600;color:#1e40af">
+                   {{ emprunt.beneficiaire.nom_complet }}
+                </span>
+              {% else %}
+                <span style="color:#999">—</span>
+              {% endif %}
+            </td>
+
+            <!-- ETAT -->
             <td>
               <span class="badge badge-etat-{{ emprunt.etat|lower|cut:' ' }}">
                 {{ emprunt.etat }}
               </span>
             </td>
-           <td style="font-size:.82rem">
-            {% if emprunt.equipement %}
-              <span style="display:inline-block;margin:.1rem .2rem .1rem 0;padding:.15rem .5rem;background:var(--c4);border-radius:4px;font-family:monospace">
-              {{ emprunt.equipement.nom }}
-              </span>
-            {% else %}
-               —
-            {% endif %}
-          </td>
-            <td>
-              <div class="td-actions">
-                <a href="{% url 'detail_emprunt' emprunt.id %}" class="btn btn-sm btn-outline" title="Voir">👁</a>
-                <a href="{% url 'modifier_emprunt' emprunt.id %}" class="btn btn-sm btn-green" title="Modifier">✏</a>
-                <a href="{% url 'supprimer_emprunt' emprunt.id %}" class="btn btn-sm btn-danger" title="Supprimer"
-                onclick="return confirm('Voulez-vous vraiment supprimer cet emprunt ?')" >🗑</a>
-              </div>
+
+            <!-- ÉQUIPEMENTS -->
+            <td style="font-size:.82rem">
+              {% for eq in emprunts.all %}
+                <span style="display:inline-block;margin:.1rem .2rem .1rem 0;padding:.15rem .5rem;background:var(--c4);border-radius:4px;font-family:monospace">
+                  {{ eq.equipement.reference }}
+                </span>
+              {% empty %}
+                —
+              {% endfor %}
             </td>
-          </tr>
+              
+            <!-- NOTIFICATION -->
+            <td>
+              {% if emprunt.message_admin %}
+                <span style="color:#2563eb;font-weight:600">
+                  {{ emprunt.message_admin }}
+                </span>
+              {% else %}
+                <span style="color:#999">—</span>
+              {% endif %}
+          </td>
           {% endfor %}
         </tbody>
       </table>
+
       {% else %}
       <div class="empty-state">
         <div class="empty-icon">📋</div>
@@ -146,14 +142,16 @@
           {% if query or etat_filtre %}
             <a href="{% url 'liste_emprunts' %}">Réinitialiser les filtres</a>
           {% else %}
-            Importez un fichier Excel ou ajoutez un emprunt manuellement.
+           
           {% endif %}
         </p>
       </div>
       {% endif %}
+
     </div>
   </div>
 
 </div>
+
 </body>
 </html>

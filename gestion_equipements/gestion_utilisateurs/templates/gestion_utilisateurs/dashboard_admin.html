@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Roboto:wght@100..900&display=swap" rel="stylesheet">
     
-    <title>Gestion Equipement - Dashboard Admin</title>
+    <title>Gestion Equipement - Dashboard Admin</title> 
 </head>
 <body>
     <header class="header">
@@ -22,7 +22,13 @@
         <main class="main">
             <section class="main-top">
                 <h3 class="main-top_title">Administrator Dashboard</h3>
-                <button class="cta"><a href="{% url 'creer_gestionnaire' %}">Add New Manager</a></button>
+                <div class="btn-top">
+                    <a href="{% url 'creer_gestionnaire' %}" class="cta">Add New Manager</a>
+                    <a href="{% url 'loan_list' %}" class="cta">Loan List</a>
+                    <a href="{% url 'loan_planning' %}" class="cta">Loan Planning</a>
+
+                </div>
+        
             </section>
 
             <section class="cards-list">
