@@ -249,7 +249,8 @@
       </thead>
       <tbody>
         {% for emprunt in emprunts %}
-        {% with est_retard=emprunt.etat == 'En cours' and emprunt.date_retour_prevu < aujourd_hui %}
+<tr {% if emprunt.etat == 'En cours' and emprunt.date_retour_prevu < aujourd_hui %}class="retard-row"{% endif %}>
+
         <tr {% if est_retard %}class="retard-row"{% endif %}>
           <td style="color:var(--c5);font-size:.8rem">{{ emprunt.id }}</td>
           <td>
@@ -285,7 +286,7 @@
             </span>
           </td>
         </tr>
-        {% endwith %}
+        {% comment %} {% endwith %} {% endcomment %}
         {% endfor %}
       </tbody>
     </table>

@@ -273,7 +273,7 @@ def filtrage_avance_equipements(request):
     tri          = request.GET.get('tri', 'nom').strip()
 
     # Queryset de base
-    qs = Equipement.objects.select_related('categorie', 'emprunt')
+    qs = Equipement.objects.select_related('categorie').prefetch_related('emprunts')
 
     # Filtre actif/inactif
     if actif == 'false':
