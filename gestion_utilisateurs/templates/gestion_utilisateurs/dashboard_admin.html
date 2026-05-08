@@ -1,0 +1,115 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/reset.css'%}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-admin.css'%}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Roboto:wght@100..900&display=swap" rel="stylesheet">
+    
+    <title>Gestion Equipement - Dashboard Admin</title> 
+</head>
+<body>
+    <header class="header">
+        <div class="" width="1px"></div>
+        <img src="{% static 'assets/img/profil-picture.png'%}" alt="profil picture" width="50px" height="50px" class="profil-img">
+        <a href="{% url 'logout' %}"><img src="{% static 'assets/img/icone/logout.svg' %}" alt="logout - btn"></a>
+    </header>
+    <div class="container">
+        <main class="main">
+            <section class="main-top">
+                <h3 class="main-top_title">Administrator Dashboard</h3>
+                <a href="{% url 'creer_gestionnaire' %}" class="cta">Add New Manager</a>
+                <a href="{% url 'loan_list' %}" class="cta">Loan List</a>
+                <a href="{% url 'loan_planning' %}" class="cta">Loan Planning</a>
+        
+            </section>
+
+            <section class="cards-list">
+                <article class="card">
+                    <div class="card_title">Total Manager:</div>
+                    <div class="card_value" id="total-manager">{{total_gestionnaires}}</div>
+                </article>
+                <article class="card">
+                    <div class="card_title">Active:</div>
+                    <div class="card_value" id="actif-manager">{{gestionnaires_actif}}</div>
+                </article>
+                <article class="card">
+                    <div class="card_title">Inactive:</div>
+                    <div class="card_value" id="inactif-manager">{{gestionnaires_inactif}}</div>
+                </article>
+            </section>
+            <!-- table -->
+            <section class="manager-board">
+                <!-- table__body -->
+                <main class="manager-board_table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Manager Name</th>
+                                <th>Email</th>
+                                <th>Creation Date</th>
+                                <th>Statuts</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for gest in gestionnaires %}
+                            <tr>
+                                <td><img src="{% static 'assets/img/profil-picture.png'%}" alt="profil picture"><b> {{gest.first_name}} {{gest.last_name}}</b></td>
+                                <td>{{gest.email}} {{gest.is_active}}</td>
+                                <td>{{gest.date_joined|date:"Y - m - d"}}</td>
+                                <td>
+                                    <div class="checkbox-container">
+                                        <input type="checkbox" id="checkbox-statut{{gest.id}}" data-id="{{gest.id}}" class="toggle-input" {% if gest.is_active %} checked {% endif %}>
+                                        <label for="checkbox-statut{{gest.id}}" class="bouton"></label>
+                                    </div>
+                                </td>
+                            </tr>                     
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </main>
+            </section>
+        </main>
+    </div>
+    <script>
+        const toggleBtns = document.querySelectorAll('.toggle-input').forEach(toggleBtn =>{
+        toggleBtn.addEventListener('change', ()=>{
+        const userId = toggleBtn.getAttribute('data-id')
+        const is_active = toggleBtn.checked
+
+        fetch(`/toggle-status/${userId}/`,{
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'content-type': 'application-json'
+            },
+            body: JSON.stringify({'is_active': is_active})
+        }).then(reponse=>{
+            if (!reponse.ok) {
+                toggleBtn.checked = !is_active
+                alert('erreur lors de la mise a jour du statut')
+            }else{
+                const actif_manager_element = document.getElementById('actif-manager')    
+                const inactif_manager_element = document.getElementById('inactif-manager')  
+                
+                actif_manager = parseInt(actif_manager_element.innerText)
+                inactif_manager = parseInt(inactif_manager_element.innerText)
+
+                if (is_active) {
+                    actif_manager_element.innerText = actif_manager + 1
+                    inactif_manager_element.innerText = inactif_manager - 1
+                } else {
+                    actif_manager_element.innerText = actif_manager - 1
+                    inactif_manager_element.innerText = inactif_manager+ 1
+                }
+            }
+            })
+        })
+    })
+    </script>
+</body>
+</html>

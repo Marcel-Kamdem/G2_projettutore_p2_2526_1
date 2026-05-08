@@ -1,0 +1,137 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contacts — GestioLab</title>
+  <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modules.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="header">
+  <a href="#" class="header-brand">⬡ GestioLab</a>
+  <nav class="header-nav">
+    <a href="{% url 'liste_equipements' %}">Équipements</a>
+    <a href="{% url 'liste_contacts' %}" class="active">Contacts</a>
+    <a href="{% url 'liste_emprunts' %}">Emprunts</a>
+  </nav>
+  <div class="header-right">
+    <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
+    <a href="{% url 'modifier_mot_de_passe' %}" class="btn btn-outline btn-sm">🔑 MDP</a>
+    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Déconnexion</a>
+  </div>
+</header>
+
+<div class="messages-container">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+
+<div class="page-wrapper">
+
+  <div class="page-title-bar">
+    <h1 class="page-title">👥 Contacts (Emprunteurs)</h1>
+    <div class="page-actions">
+      <a href="{% url 'importer_contacts' %}" class="btn btn-outline">⬆ Importer Excel</a>
+      <a href="{% url 'creer_contact' %}" class="btn btn-primary">+ Ajouter</a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Total</div>
+      <div class="stat-value">{{ stats.total }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Étudiants</div>
+      <div class="stat-value" style="color:#4c1d95">{{ stats.etudiants }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Enseignants</div>
+      <div class="stat-value" style="color:#065f46">{{ stats.enseignants }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Autres</div>
+      <div class="stat-value" style="color:var(--c5)">{{ stats.autres }}</div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <form method="GET" class="filter-bar">
+    <input type="text" name="q" value="{{ query }}" placeholder="🔍 Rechercher par nom, email, matricule...">
+    <select name="type">
+      <option value="">Tous les types</option>
+      {% for val, label in types %}
+        <option value="{{ val }}" {% if type_filtre == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-green btn-search">Filtrer</button>
+    {% if query or type_filtre %}
+      <a href="{% url 'liste_contacts' %}" class="btn btn-outline">✕ Réinitialiser</a>
+    {% endif %}
+  </form>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-scroll">
+      {% if contacts %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Téléphone</th>
+            <th>Type</th>
+            <th>Matricule</th>
+            <th>Filière</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in contacts %}
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:.65rem">
+                <div class="avatar">{{ c.prenom|first|upper }}{{ c.nom|first|upper }}</div>
+                <strong>{{ c.nom_complet }}</strong>
+              </div>
+            </td>
+            <td>{{ c.email }}</td>
+            <td>{{ c.telephone|default:"—" }}</td>
+            <td><span class="badge badge-{{ c.type_contact }}">{{ c.get_type_contact_display }}</span></td>
+            <td style="font-family:monospace;font-size:.82rem">{{ c.matricule|default:"—" }}</td>
+            <td>{{ c.filiere|default:"—" }}</td>
+            <td>
+              <div class="td-actions">
+                <a href="{% url 'detail_contact' c.pk %}" class="btn btn-sm btn-outline" title="Voir">👁</a>
+                <a href="{% url 'modifier_contact' c.pk %}" class="btn btn-sm btn-green" title="Modifier">✏</a>
+                <a href="{% url 'retirer_contact' c.pk %}" class="btn btn-sm btn-danger" title="Retirer">🗑</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <p>Aucun contact trouvé.
+          {% if query or type_filtre %}
+            <a href="{% url 'liste_contacts' %}">Réinitialiser les filtres</a>
+          {% else %}
+            <a href="{% url 'creer_contact' %}">Ajouter le premier contact</a>
+          {% endif %}
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
