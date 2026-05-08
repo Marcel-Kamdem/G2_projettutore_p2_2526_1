@@ -20,6 +20,11 @@ class EmpruntForm(forms.ModelForm):
             'date_empr'
 
         ]
+        widgets = {
+            'date_empr':forms.DateInput(attrs={'type': 'date'}),
+            'date_retour_prevu':forms.DateInput(attrs={'type': 'date'}),
+            'date_retour_effect':forms.DateInput(attrs={'type': 'date'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

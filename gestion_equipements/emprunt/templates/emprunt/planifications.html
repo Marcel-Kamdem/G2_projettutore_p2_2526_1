@@ -1,147 +1,163 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Planifications — GestioLab</title>
-  <link rel="stylesheet" href="{% static 'css/reset.css' %}">
-  <link rel="stylesheet" href="{% static 'css/modules.css' %}">
-</head>
-<body>
-
-<header class="header">
-  <a href="#" class="header-brand">⬡ GestioLab</a>
-  <nav class="header-nav">
-    <a href="{% url 'liste_equipements' %}">Équipements</a>
-    <a href="{% url 'liste_contacts' %}">Contacts</a>
-    <a href="{% url 'liste_emprunts' %}">Emprunts</a>
-    <a href="{% url 'liste_planifications' %}" class="active">Planifications</a>
-  </nav>
-  <div class="header-right">
-    <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
-    <a href="{% url 'modifier_mot_de_passe' %}" class="btn btn-outline btn-sm">🔑 MDP</a>
-    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Déconnexion</a>
-  </div>
-</header>
-
-<div class="messages-container">
-  {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-  {% endfor %}
-</div>
-
-<div class="page-wrapper">
-
-  <div class="page-title-bar">
-    <h1 class="page-title">📅 Planifications en attente</h1>
-      <a href="{% url 'importer_emprunts' %}" class="btn btn-outline">⬆ Importer Excel</a>
-  </div>
-
-  <div class="table-card">
-    <div class="table-scroll">
-
-      {% if planifications %}
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Bénéficiaire</th>
-            <th>Objet</th>
-            <th>Date emprunt</th>
-            <th>Date retour prévue</th>
-            <th>Équipements</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-
-          {% for plan in planifications %}
-          <tr>
-            <td>
-              <div style="display:flex;align-items:center;gap:.65rem">
-                <div class="avatar">
-                  {{ plan.beneficiaire.prenom|first|upper }}{{ plan.beneficiaire.nom|first|upper }}
-                </div>
-                <strong>{{ plan.beneficiaire.nom_complet }}</strong>
-              </div>
-            </td>
-
-            <td>{{ plan.object_dmd }}</td>
-            <td>{{ plan.date_empr }}</td>
-            <td>{{ plan.date_retour_prevu }}</td>
-
-             <td style="font-size:.82rem">
-            {% if emprunt.equipement %}
-              <span style="display:inline-block;margin:.1rem .2rem .1rem 0;padding:.15rem .5rem;background:var(--c4);border-radius:4px;font-family:monospace">
-              {{ emprunt.equipement.nom }}
-              </span>
-            {% else %}
-               —
-            {% endif %}
-          </td>
-
-    <td>
-    <div class="td-actions">
-
-    <!-- ✅ VALIDER -->
-    <a href="{% url 'valider_planification' plan.id %}"
-       class="btn btn-sm 
-       {% if plan.etat == 'VALIDE' %}
-           btn-green
-       {% elif user.is_superuser %}
-           btn-outline
-       {% else %}
-           btn-outline disabled
-       {% endif %}"
-       {% if not user.is_superuser %}style="pointer-events:none;opacity:.5"{% endif %}
-       title="Valider">
-    </a>
-
-    <!-- ❌ REFUSER -->
-    <a href="{% url 'refuser_planification' plan.id %}"
-       class="btn btn-sm 
-       {% if plan.etat == 'REFUSE' %}
-           btn-danger
-       {% elif user.is_superuser %}
-           btn-outline
-       {% else %}
-           btn-outline disabled
-       {% endif %}"
-       {% if not user.is_superuser %}style="pointer-events:none;opacity:.5"{% endif %}
-       title="Refuser">
-    </a>
-
-    <!-- ⏳ EN COURS -->
-    <a href="{% url 'passer_en_cours' plan.id %}"
-       class="btn btn-sm 
-       {% if plan.etat == 'EN_COURS' %}
-           btn-primary
-       {% elif user.is_superuser %}
-           btn-outline
-       {% else %}
-           btn-outline disabled
-       {% endif %}"
-       {% if not user.is_superuser %}style="pointer-events:none;opacity:.5"{% endif %}
-       title="Mettre en cours">
-    </a>
-
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Planifications — GestioLab</title>
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/modules.css' %}" />
+  </head>
+  <body>
+    <header class="header">
+      <a href="#" class="header-brand">⬡ GestioLab</a>
+      <nav class="header-nav">
+        <a href="{% url 'liste_equipements' %}">Équipements</a>
+        <a href="{% url 'liste_contacts' %}">Contacts</a>
+        <a href="{% url 'liste_emprunts' %}">Emprunts</a>
+        <a href="{% url 'liste_planifications' %}" class="active"
+          >Planifications</a
+        >
+      </nav>
+      <div class="header-right">
+        <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil" />
+        <a
+          href="{% url 'modifier_mot_de_passe' %}"
+          class="btn btn-outline btn-sm"
+          >🔑 MDP</a
+        >
+        <a href="{% url 'logout' %}" class="btn btn-outline btn-sm"
+          >Déconnexion</a
+        >
       </div>
-    </td>
-          </tr>
-          {% endfor %}
+    </header>
 
-        </tbody>
-      </table>
-
-      {% else %}
-      <div class="empty-state">
-        <div class="empty-icon">📅</div>
-        <p>Aucune planification en attente.</p>
-      </div>
-      {% endif %}
-
+    <div class="messages-container">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
     </div>
-  </div>
 
-</div>
-</body>
+    <div class="page-wrapper">
+      <div class="page-title-bar">
+        <h1 class="page-title">📅 Planifications en attente</h1>
+        <a href="{% url 'importer_emprunts' %}" class="btn btn-outline"
+          >⬆ Importer Excel</a
+        >
+      </div>
+
+      <div class="table-card">
+        <div class="table-scroll">
+          {% if planifications %}
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Bénéficiaire</th>
+                <th>Objet</th>
+                <th>Date emprunt</th>
+                <th>Date retour prévue</th>
+                <th>Équipements</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for plan in planifications %}
+              <tr>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 0.65rem">
+                    <div class="avatar">
+                      {{ plan.beneficiaire.prenom|first|upper }}{{
+                      plan.beneficiaire.nom|first|upper }}
+                    </div>
+                    <strong>{{ plan.beneficiaire.nom_complet }}</strong>
+                  </div>
+                </td>
+
+                <td>{{ plan.object_dmd }}</td>
+                <td>{{ plan.date_empr }}</td>
+                <td>{{ plan.date_retour_prevu }}</td>
+
+                <td style="font-size: 0.82rem">
+                  {% if plan.equipement %}
+                  <span
+                    style="
+                      display: inline-block;
+                      margin: 0.1rem 0.2rem 0.1rem 0;
+                      padding: 0.15rem 0.5rem;
+                      background: var(--c4);
+                      border-radius: 4px;
+                      font-family: monospace;
+                    "
+                  >
+                    {{ plan.equipement.nom }}
+                  </span>
+                  {% else %} — {% endif %}
+                </td>
+
+                <td>
+                  <div class="td-actions">
+                    <!-- ✅ VALIDER -->
+                    <a
+                      href="{% url 'valider_planification' plan.id %}"
+                      class="btn btn-sm {% if plan.etat == 'VALIDE' %} btn-green {% elif user.is_superuser %} btn-outline {% else %} btn-outline disabled {% endif %}"
+                      {%
+                      if
+                      not
+                      user.is_superuser
+                      %}style="pointer-events:none;opacity:.5"
+                      {%
+                      endif
+                      %}
+                      title="Valider"
+                    >
+                    </a>
+
+                    <!-- ❌ REFUSER -->
+                    <a
+                      href="{% url 'refuser_planification' plan.id %}"
+                      class="btn btn-sm {% if plan.etat == 'REFUSE' %} btn-danger {% elif user.is_superuser %} btn-outline {% else %} btn-outline disabled {% endif %}"
+                      {%
+                      if
+                      not
+                      user.is_superuser
+                      %}style="pointer-events:none;opacity:.5"
+                      {%
+                      endif
+                      %}
+                      title="Refuser"
+                    >
+                    </a>
+
+                    <!-- ⏳ EN COURS -->
+                    <a
+                      href="{% url 'passer_en_cours' plan.id %}"
+                      class="btn btn-sm {% if plan.etat == 'EN_COURS' %} btn-primary {% elif user.is_superuser %} btn-outline {% else %} btn-outline disabled {% endif %}"
+                      {%
+                      if
+                      not
+                      user.is_superuser
+                      %}style="pointer-events:none;opacity:.5"
+                      {%
+                      endif
+                      %}
+                      title="Mettre en cours"
+                    >
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          {% else %}
+          <div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <p>Aucune planification en attente.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </body>
 </html>
