@@ -64,7 +64,7 @@
             <th>Objet demandé</th>
             <th>Date emprunt</th>
             <th>Date retour prévue</th>
-            <th>Gestionnaire</th>
+            {% comment %} <th>Gestionnaire</th> {% endcomment %}
             <th>État</th>
             <th>Équipements</th>
             <th>Notification</th>
@@ -92,7 +92,7 @@
             <td>{{ emprunt.date_empr }}</td>
             <td>{{ emprunt.date_retour_prevu }}</td>
 
-            <!-- 🔥 GESTIONNAIRE (NOUVEAU) -->
+            {% comment %} <!-- 🔥 GESTIONNAIRE (NOUVEAU) -->
             <td>
               {% if emprunt.beneficiaire %}
                 <span style="font-weight:600;color:#1e40af">
@@ -101,7 +101,7 @@
               {% else %}
                 <span style="color:#999">—</span>
               {% endif %}
-            </td>
+            </td> {% endcomment %}
 
             <!-- ETAT -->
             <td>
@@ -111,15 +111,15 @@
             </td>
 
             <!-- ÉQUIPEMENTS -->
-            <td style="font-size:.82rem">
-              {% for eq in emprunts.all %}
-                <span style="display:inline-block;margin:.1rem .2rem .1rem 0;padding:.15rem .5rem;background:var(--c4);border-radius:4px;font-family:monospace">
-                  {{ eq.equipement.reference }}
-                </span>
-              {% empty %}
-                —
-              {% endfor %}
-            </td>
+             <td style="font-size:.82rem">
+            {% if emprunt.equipement %}
+              <span style="display:inline-block;margin:.1rem .2rem .1rem 0;padding:.15rem .5rem;background:var(--c4);border-radius:4px;font-family:monospace">
+              {{ emprunt.equipement.nom }}
+              </span>
+            {% else %}
+               —
+            {% endif %}
+          </td>
               
             <!-- NOTIFICATION -->
             <td>

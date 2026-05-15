@@ -57,7 +57,7 @@
                 <th>Date emprunt</th>
                 <th>Date retour prévue</th>
                 <th>Équipements</th>
-                <th>Actions</th>
+                {% comment %} <th>Actions</th> {% endcomment %}
               </tr>
             </thead>
             <tbody>
@@ -94,7 +94,7 @@
                   {% else %} — {% endif %}
                 </td>
 
-                <td>
+                {% comment %} <td>
                   <div class="td-actions">
                     <!-- ✅ VALIDER -->
                     <a
@@ -144,7 +144,7 @@
                     >
                     </a>
                   </div>
-                </td>
+                </td> {% endcomment %}
               </tr>
               {% endfor %}
             </tbody>
