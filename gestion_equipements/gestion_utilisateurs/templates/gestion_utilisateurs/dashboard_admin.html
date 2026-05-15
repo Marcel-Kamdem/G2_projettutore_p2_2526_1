@@ -1,6 +1,7 @@
 {% load static %}
 <!doctype html>
 <html lang="en">
+<<<<<<< HEAD
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,6 +17,20 @@
     <title>Gestion Equipement - Dashboard Admin</title>
   </head>
   <body>
+=======
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/reset.css'%}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-admin.css'%}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Roboto:wght@100..900&display=swap" rel="stylesheet">
+    
+    <title>Gestion Equipement - Dashboard Admin</title> 
+</head>
+<body>
+>>>>>>> develop
     <header class="header">
       <div class="" width="1px"></div>
       <img
@@ -32,6 +47,7 @@
       /></a>
     </header>
     <div class="container">
+<<<<<<< HEAD
       <main class="main">
         <section class="main-top">
           <h3 class="main-top_title">Administrator Dashboard</h3>
@@ -39,6 +55,19 @@
             <a href="{% url 'creer_gestionnaire' %}">Add New Manager</a>
           </button>
         </section>
+=======
+        <main class="main">
+            <section class="main-top">
+                <h3 class="main-top_title">Administrator Dashboard</h3>
+                <div class="btn-top">
+                    <a href="{% url 'creer_gestionnaire' %}" class="cta">Add New Manager</a>
+                    <a href="{% url 'loan_list' %}" class="cta">Loan List</a>
+                    <a href="{% url 'loan_planning' %}" class="cta">Loan Planning</a>
+
+                </div>
+        
+            </section>
+>>>>>>> develop
 
         <section class="cards-list">
           <article class="card">

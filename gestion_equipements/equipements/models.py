@@ -33,7 +33,7 @@ class Equipement(models.Model):
     est_actif = models.BooleanField(default=True)
     notes = models.TextField(blank=True)
     categorie = models.ForeignKey(Categorie, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipements')
-    emprunt = models.ForeignKey(Emprunt, on_delete=models.SET_NULL, blank=True, null=True, related_name="equipements")
+    
 
 
     def __str__(self):

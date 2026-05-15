@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Détail emprunt — GestioLab</title>
+  <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modules.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="header">
+  <a href="#" class="header-brand">⬡ GestioLab</a>
+  <nav class="header-nav">
+    <a href="{% url 'liste_equipements' %}">Équipements</a>
+    <a href="{% url 'liste_contacts' %}">Contacts</a>
+    <a href="{% url 'liste_emprunts' %}" class="active">Emprunts</a>
+  </nav>
+  <div class="header-right">
+    <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
+    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Déconnexion</a>
+  </div>
+</header>
+
+<div class="page-wrapper">
+
+  <div class="page-title-bar">
+    <div>
+      <a href="{% url 'liste_emprunts' %}" style="font-size:.85rem;color:var(--c5);text-decoration:none;">← Retour à la liste</a>
+      <h1 class="page-title" style="margin-top:.25rem">Détail de l'emprunt</h1>
+    </div>
+
+    <div class="page-actions">
+      <a href="{% url 'modifier_emprunt' emprunt.pk %}" class="btn btn-green">✏ Modifier</a>
+      <a href="{% url 'supprimer_emprunt' emprunt.pk %}" class="btn btn-danger">🗑 Supprimer</a>
+    </div>
+  </div>
+
+  <div class="detail-card">
+
+    <div class="detail-header">
+      <div style="width:64px;height:64px;border-radius:var(--radius);background:var(--c2);display:flex;align-items:center;justify-content:center;font-size:2rem;">
+        📋
+      </div>
+
+      <div class="detail-header-info">
+        <h1>{{ emprunt.beneficiaire.nom_complet }}</h1>
+        <div class="detail-header-meta">
+          <span class="badge">{{ emprunt.etat }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-body">
+
+      <div class="detail-grid">
+
+        <div class="detail-field">
+          <div class="field-label">Objet</div>
+          <div class="field-value">{{ emprunt.object_dmd }}</div>
+        </div>
+
+        <div class="detail-field">
+          <div class="field-label">Date emprunt</div>
+          <div class="field-value">{{ emprunt.date_empr }}</div>
+        </div>
+
+        <div class="detail-field">
+          <div class="field-label">Date retour prévue</div>
+          <div class="field-value">{{ emprunt.date_retour_prevu }}</div>
+        </div>
+
+        <div class="detail-field">
+          <div class="field-label">Date retour effective</div>
+          <div class="field-value">{{ emprunt.date_retour_effect|default:"Non retourné" }}</div>
+        </div>
+
+      </div>
+
+      <div style="margin-top:1.5rem">
+        <div class="field-label">Équipements empruntés</div>
+
+        {% for eq in emprunt.equipements.all %}
+          <div style="margin:.4rem 0;padding:.4rem .6rem;background:var(--c4);border-radius:6px;display:flex;justify-content:space-between;align-items:center">
+            <span>{{ eq.nom }} ({{ eq.reference }})</span>
+
+            <div style="display:flex;gap:.5rem">
+              <a href="{% url 'detail_equipement' eq.pk %}" class="btn btn-sm btn-outline">👁</a>
+              <a href="{% url 'modifier_equipement' eq.pk %}" class="btn btn-sm btn-green">✏</a>
+              <a href="{% url 'retirer_equipement' eq.pk %}" class="btn btn-sm btn-danger">🗑</a>
+            </div>
+          </div>
+        {% empty %}
+          <p>Aucun équipement associé</p>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

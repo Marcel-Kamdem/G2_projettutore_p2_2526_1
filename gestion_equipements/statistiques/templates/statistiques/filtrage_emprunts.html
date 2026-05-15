@@ -1,0 +1,305 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filtrage avancé — Emprunts</title>
+  <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modules.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+  <style>
+    .filter-panel {
+      background: var(--c3); border: 2px solid var(--c2l);
+      border-radius: var(--radius); padding: 1.5rem;
+      box-shadow: var(--shadow-sm); margin-bottom: 1.5rem;
+    }
+    .filter-panel-title {
+      font-family: var(--ff); font-size: 1rem; font-weight: 800;
+      margin-bottom: 1.25rem; color: var(--c1);
+    }
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: .4rem; }
+    .filter-group label {
+      font-size: .78rem; font-weight: 700; color: var(--c5);
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    .filter-group input,
+    .filter-group select {
+      font-family: var(--ff2); font-size: .9rem;
+      height: 2.6rem; padding: 0 1rem;
+      border: 2px solid #ddd; border-radius: var(--radius-sm);
+      background: var(--c3); outline: none;
+      transition: border-color .2s;
+    }
+    .filter-group input:focus,
+    .filter-group select:focus { border-color: var(--c2); }
+    .filter-actions { display: flex; gap: .75rem; margin-top: 1.25rem; flex-wrap: wrap; }
+
+    /* Checkbox en retard */
+    .retard-toggle {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .5rem 1rem; border: 2px solid #ddd;
+      border-radius: var(--radius-sm); background: var(--c3);
+      cursor: pointer; height: 2.6rem;
+      transition: border-color .2s;
+    }
+    .retard-toggle:has(input:checked) { border-color: var(--c7); background: #fff0f0; }
+    .retard-toggle input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--c7); }
+    .retard-toggle span { font-size: .88rem; font-weight: 700; color: var(--c7); }
+
+    /* Bandeau résultats */
+    .result-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: .75rem; margin-bottom: 1rem;
+    }
+    .result-count { font-family: var(--ff); font-size: 1rem; font-weight: 800; }
+    .result-stats { display: flex; gap: .75rem; flex-wrap: wrap; }
+    .result-badge {
+      background: var(--c4); border: 1px solid var(--c2l);
+      border-radius: 100px; padding: .25rem .85rem;
+      font-size: .78rem; font-weight: 700; color: var(--c1);
+    }
+    .result-badge.red   { background: #fee2e2; border-color: #fca5a5; color: var(--c7); }
+    .result-badge.green { background: #dcfce7; border-color: #bbf7d0; color: #065f46; }
+    .result-badge.amber { background: #fef3c7; border-color: #fde68a; color: #92400e; }
+
+    /* Tableau */
+    .data-table-wrap { overflow-x: auto; }
+    .data-table {
+      width: 100%; border-collapse: collapse; font-size: .88rem;
+    }
+    .data-table th {
+      background: var(--c1); color: var(--c3);
+      font-family: var(--ff); font-size: .75rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em;
+      padding: .85rem 1rem; text-align: left; white-space: nowrap;
+    }
+    .data-table th a { color: var(--c3); text-decoration: none; }
+    .data-table th a:hover { text-decoration: underline; }
+    .data-table td {
+      padding: .75rem 1rem; border-bottom: 1px solid var(--c4);
+      vertical-align: middle;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--c4); }
+    .data-table tr.retard-row td { background: #fff7f7; }
+    .data-table tr.retard-row:hover td { background: #fee2e2; }
+
+    /* badges état emprunt */
+    .etat-badge {
+      display: inline-block; border-radius: 100px;
+      padding: .2rem .75rem; font-size: .75rem; font-weight: 700;
+    }
+    .etat-En-cours  { background: #fef3c7; color: #92400e; }
+    .etat-Retourné  { background: #dcfce7; color: #065f46; }
+    .etat-Expiré    { background: #fee2e2; color: var(--c7); }
+    .etat-Annulé    { background: #f3f4f6; color: #6b7280; }
+    .etat-Planifié  { background: #dbeafe; color: #1e40af; }
+    .etat-Validé    { background: #e0e7ff; color: #3730a3; }
+
+    .retard-chip {
+      display: inline-block; background: var(--c7); color: #fff;
+      border-radius: 100px; padding: .15rem .6rem;
+      font-size: .7rem; font-weight: 700; margin-left: .3rem;
+    }
+
+    .empty-state {
+      text-align: center; padding: 3rem; color: var(--c5); font-size: .95rem;
+    }
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <a href="{% url 'dashboard_gestionnaire' %}" class="header-brand">⬡ GestioLab</a>
+  <nav class="header-nav">
+    <a href="{% url 'liste_equipements' %}">Équipements</a>
+    <a href="{% url 'liste_contacts' %}">Contacts</a>
+    <a href="{% url 'statistiques:tableau_bord' %}">📊 Statistiques</a>
+  </nav>
+  <div class="header-right">
+    <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
+    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Déconnexion</a>
+  </div>
+</header>
+
+<div class="messages-container">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+
+<div class="page-wrapper">
+
+  <div class="page-title-bar">
+    <div class="page-title">🔍 Filtrage avancé — Emprunts</div>
+    <div class="page-actions">
+      <a href="{% url 'statistiques:tableau_bord' %}" class="btn btn-outline">← Tableau de bord</a>
+      <a href="{% url 'statistiques:filtrage_equipements' %}" class="btn btn-outline">📦 Filtrage équipements</a>
+    </div>
+  </div>
+
+  <!-- ── Panneau de filtres ── -->
+  <div class="filter-panel">
+    <div class="filter-panel-title">🎛️ Critères de filtrage</div>
+    <form method="GET" action="">
+      <div class="filter-grid">
+
+        <!-- Recherche -->
+        <div class="filter-group" style="grid-column: span 2">
+          <label>Recherche (bénéficiaire : nom, prénom, matricule, email — ou objet demandé)</label>
+          <input type="text" name="q" value="{{ q }}" placeholder="Ex : Dupont, étudiant 123, micro …">
+        </div>
+
+        <!-- État -->
+        <div class="filter-group">
+          <label>État de l'emprunt</label>
+          <select name="etat">
+            <option value="">— Tous les états —</option>
+            {% for val, label in etats_emprunt %}
+            <option value="{{ val }}" {% if etat == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- En retard uniquement -->
+        <div class="filter-group">
+          <label>Retard</label>
+          <label class="retard-toggle">
+            <input type="checkbox" name="en_retard" value="1" {% if en_retard == '1' %}checked{% endif %}>
+            <span>⚠️ Afficher uniquement les retards</span>
+          </label>
+        </div>
+
+        <!-- Dates emprunt -->
+        <div class="filter-group">
+          <label>Emprunté depuis le</label>
+          <input type="date" name="date_debut" value="{{ date_debut }}">
+        </div>
+        <div class="filter-group">
+          <label>Emprunté jusqu'au</label>
+          <input type="date" name="date_fin" value="{{ date_fin }}">
+        </div>
+
+        <!-- Dates retour prévu -->
+        <div class="filter-group">
+          <label>Retour prévu depuis le</label>
+          <input type="date" name="retour_debut" value="{{ retour_debut }}">
+        </div>
+        <div class="filter-group">
+          <label>Retour prévu jusqu'au</label>
+          <input type="date" name="retour_fin" value="{{ retour_fin }}">
+        </div>
+
+        <!-- Tri -->
+        <div class="filter-group">
+          <label>Trier par</label>
+          <select name="tri">
+            <option value="-date_empr"        {% if tri == '-date_empr'        %}selected{% endif %}>Date emprunt (récents d'abord)</option>
+            <option value="date_empr"         {% if tri == 'date_empr'         %}selected{% endif %}>Date emprunt (anciens d'abord)</option>
+            <option value="date_retour_prevu" {% if tri == 'date_retour_prevu' %}selected{% endif %}>Date retour prévu</option>
+            <option value="etat"              {% if tri == 'etat'              %}selected{% endif %}>État</option>
+            <option value="beneficiaire"      {% if tri == 'beneficiaire'      %}selected{% endif %}>Bénéficiaire (nom)</option>
+          </select>
+        </div>
+
+      </div><!-- /filter-grid -->
+      <div class="filter-actions">
+        <button type="submit" class="btn btn-primary">🔍 Filtrer</button>
+        <a href="{% url 'statistiques:filtrage_emprunts' %}" class="btn btn-outline">✕ Réinitialiser</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── Bandeau résultats ── -->
+  <div class="result-bar">
+    <div class="result-count">
+      {{ stats_resultats.total }} résultat{{ stats_resultats.total|pluralize }}
+    </div>
+    <div class="result-stats">
+      <span class="result-badge amber">⏳ {{ stats_resultats.en_cours }} en cours</span>
+      <span class="result-badge green">✅ {{ stats_resultats.retournes }} retourné{{ stats_resultats.retournes|pluralize }}</span>
+      <span class="result-badge red">⚠️ {{ stats_resultats.en_retard }} en retard</span>
+      <span class="result-badge">❌ {{ stats_resultats.expires }} expiré{{ stats_resultats.expires|pluralize }}</span>
+    </div>
+  </div>
+
+  <!-- ── Tableau des résultats ── -->
+  {% if emprunts %}
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th><a href="?q={{ q }}&etat={{ etat }}&date_debut={{ date_debut }}&date_fin={{ date_fin }}&retour_debut={{ retour_debut }}&retour_fin={{ retour_fin }}&en_retard={{ en_retard }}&tri=beneficiaire">Bénéficiaire ↕</a></th>
+          <th>Type</th>
+          <th>Objet demandé</th>
+          <th><a href="?q={{ q }}&etat={{ etat }}&date_debut={{ date_debut }}&date_fin={{ date_fin }}&retour_debut={{ retour_debut }}&retour_fin={{ retour_fin }}&en_retard={{ en_retard }}&tri=-date_empr">Date emprunt ↕</a></th>
+          <th><a href="?q={{ q }}&etat={{ etat }}&date_debut={{ date_debut }}&date_fin={{ date_fin }}&retour_debut={{ retour_debut }}&retour_fin={{ retour_fin }}&en_retard={{ en_retard }}&tri=date_retour_prevu">Retour prévu ↕</a></th>
+          <th>Retour effectif</th>
+          <th><a href="?q={{ q }}&etat={{ etat }}&date_debut={{ date_debut }}&date_fin={{ date_fin }}&retour_debut={{ retour_debut }}&retour_fin={{ retour_fin }}&en_retard={{ en_retard }}&tri=etat">État ↕</a></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for emprunt in emprunts %}
+<tr {% if emprunt.etat == 'En cours' and emprunt.date_retour_prevu < aujourd_hui %}class="retard-row"{% endif %}>
+
+        <tr {% if est_retard %}class="retard-row"{% endif %}>
+          <td style="color:var(--c5);font-size:.8rem">{{ emprunt.id }}</td>
+          <td>
+            <strong>{{ emprunt.beneficiaire.prenom }} {{ emprunt.beneficiaire.nom }}</strong>
+            {% if emprunt.beneficiaire.matricule %}
+              <br><span style="font-size:.75rem;color:var(--c5)">{{ emprunt.beneficiaire.matricule }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <span style="font-size:.78rem;background:var(--c4);padding:.15rem .5rem;border-radius:100px">
+              {{ emprunt.beneficiaire.get_type_contact_display }}
+            </span>
+          </td>
+          <td>{{ emprunt.object_dmd }}</td>
+          <td>{{ emprunt.date_empr|date:"d/m/Y" }}</td>
+          <td>
+            {{ emprunt.date_retour_prevu|date:"d/m/Y" }}
+            {% if est_retard %}
+              <span class="retard-chip">RETARD</span>
+            {% endif %}
+          </td>
+          <td>{{ emprunt.date_retour_effect|date:"d/m/Y"|default:"—" }}</td>
+          <td>
+            <span class="etat-badge etat-{{ emprunt.etat|cut:' ' }}">
+              {% if emprunt.etat == 'En cours' %}⏳
+              {% elif emprunt.etat == 'Retourné' %}✅
+              {% elif emprunt.etat == 'Expiré' %}❌
+              {% elif emprunt.etat == 'Annulé' %}🚫
+              {% elif emprunt.etat == 'Planifié' %}📅
+              {% elif emprunt.etat == 'Validé' %}✔️
+              {% endif %}
+              {{ emprunt.etat }}
+            </span>
+          </td>
+        </tr>
+        {% comment %} {% endwith %} {% endcomment %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📭</div>
+    <p>Aucun emprunt ne correspond à ces critères.</p>
+    <a href="{% url 'statistiques:filtrage_emprunts' %}" class="btn btn-outline" style="margin-top:1rem">Réinitialiser les filtres</a>
+  </div>
+  {% endif %}
+
+</div><!-- /page-wrapper -->
+</body>
+</html>
