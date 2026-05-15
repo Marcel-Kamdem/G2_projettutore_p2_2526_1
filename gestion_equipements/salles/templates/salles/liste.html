@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salles — GestioLab</title>
+  <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modules.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="header">
+  <a href="#" class="header-brand">⬡ GestioLab</a>
+  <nav class="header-nav">
+    <a href="{% url 'liste_equipements' %}">Équipements</a>
+    <a href="{% url 'liste_contacts' %}">Contacts</a>
+    <a href="{% url 'liste_emprunts' %}">Emprunts</a>
+    {% comment %} <a href="{% url 'liste_salles' %}" class="active">Salles</a> {% endcomment %}
+  </nav>
+  <div class="header-right">
+    <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
+    <a href="{% url 'modifier_mot_de_passe' %}" class="btn btn-outline btn-sm">🔑 MDP</a>
+    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Déconnexion</a>
+  </div>
+</header>
+
+<div class="messages-container">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+
+<div class="page-wrapper">
+
+  <div class="page-title-bar">
+    <h1 class="page-title">🏫 Salles</h1>
+    <div class="page-actions">
+      <a href="{% url 'salles:creer_salle' %}" class="btn btn-primary">+ Ajouter</a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Total</div>
+      <div class="stat-value">{{ stats.total }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Laboratoires</div>
+      <div class="stat-value" style="color:#1e40af">{{ stats.laboratoires }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Salles de cours</div>
+      <div class="stat-value" style="color:#065f46">{{ stats.salles_cours }}</div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-scroll">
+      {% if salles %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Type</th>
+            <th>Capacité</th>
+            <th>Équipements</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for salle in salles %}
+          <tr>
+            <td><strong>{{ salle.nom }}</strong></td>
+            <td><span class="badge badge-salle-{{ salle.type_salle }}">{{ salle.get_type_salle_display }}</span></td>
+            <td>{{ salle.capacite|default:"—" }}</td>
+            <td>-</td>
+            <td>
+              <div class="td-actions">
+                <a href="{% url 'salles:detail_salle' salle.pk %}" class="btn btn-sm btn-outline" title="Voir">👁</a>
+                <a href="{% url 'salles:modifier_salle' salle.pk %}" class="btn btn-sm btn-green" title="Modifier">✏</a>
+                <a href="{% url 'salles:supprimer_salle' salle.pk %}" class="btn btn-sm btn-danger" title="Supprimer">🗑</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">🏫</div>
+        <p>Aucune salle trouvée. <a href="{% url 'salles:creer_salle' %}">Ajouter la première salle</a></p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

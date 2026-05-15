@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'contacts',
     'emprunt',
     'statistiques',
+    'salles',
 ]
 
 MIDDLEWARE = [
