@@ -12,6 +12,13 @@
 <body>
 <header class="header">
   <a href="#" class="header-brand">⬡ GestioLab</a>
+  <nav class="header-nav">
+    <a href="{% url 'liste_equipements' %}" class="active">Équipements</a>
+    <a href="{% url 'liste_contacts' %}">Contacts</a>
+    <a href="{% url 'liste_emprunts' %}">Emprunts</a>
+    <a href="{% url 'liste_planifications' %}">Planifications</a>
+    <a href="{% url 'statistiques:tableau_bord' %}">📊 Statistiques</a>
+  </nav>
   <div class="header-right">
     <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Déconnexion</a>
   </div>
