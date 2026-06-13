@@ -8,6 +8,10 @@
   <link rel="stylesheet" href="{% static 'css/modules.css' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+  <style>
+    .champ-salle { display: none; }
+    .champ-salle.visible { display: block; }
+  </style>
 </head>
 <body>
 
@@ -16,7 +20,7 @@
   <nav class="header-nav">
     <a href="{% url 'liste_equipements' %}">Équipements</a>
     <a href="{% url 'liste_contacts' %}" class="active">Contacts</a>
-    <a href="{% url 'liste_emprunts' %}">Emprunts</a>
+    <a href="{% url 'liste_mouvements' %}">Mouvements</a>
   </nav>
   <div class="header-right">
     <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
@@ -31,7 +35,6 @@
 </div>
 
 <div class="page-wrapper">
-
   <div class="page-title-bar">
     <div>
       <a href="{% url 'liste_contacts' %}" style="font-size:.85rem;color:var(--c5);text-decoration:none;">← Retour à la liste</a>
@@ -69,13 +72,23 @@
         </div>
 
         <div class="form-group">
-          <label>Type</label>
+          <label>Type *</label>
           {{ form.type_contact }}
         </div>
 
         <div class="form-group">
           <label>Matricule</label>
           {{ form.matricule }}
+        </div>
+
+        <!-- Champ salle : visible uniquement si étudiant -->
+        <div class="form-group champ-salle" id="bloc-salle">
+          <label>Salle de classe *</label>
+          {{ form.salle }}
+          {% if form.salle.errors %}
+            <span style="color:var(--c7);font-size:.8rem">{{ form.salle.errors.0 }}</span>
+          {% endif %}
+          <small style="color:var(--c5);font-size:.78rem">Obligatoire pour les étudiants</small>
         </div>
 
         <div class="form-group span-2">
@@ -101,7 +114,22 @@
       </div>
     </form>
   </div>
-
 </div>
+
+<script>
+  const typeSelect = document.getElementById('id_type_contact');
+  const blocSalle = document.getElementById('bloc-salle');
+
+  function majSalle() {
+    if (typeSelect.value === 'etudiant') {
+      blocSalle.classList.add('visible');
+    } else {
+      blocSalle.classList.remove('visible');
+    }
+  }
+
+  typeSelect.addEventListener('change', majSalle);
+  majSalle(); // appel initial pour pré-remplissage en modification
+</script>
 </body>
 </html>

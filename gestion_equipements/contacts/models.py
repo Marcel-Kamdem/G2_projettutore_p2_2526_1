@@ -1,5 +1,5 @@
 from django.db import models
-
+from salles.models import Salle
 
 class Contact(models.Model):
     TYPE_CHOICES = [
@@ -21,6 +21,14 @@ class Contact(models.Model):
     date_modification = models.DateTimeField(auto_now=True)
     est_actif = models.BooleanField(default=True)
     notes = models.TextField(blank=True)
+    salle = models.ForeignKey(
+        Salle,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='etudiants',
+        verbose_name="Salle de classe"
+    )
 
     def __str__(self):
         return f"{self.prenom} {self.nom}"

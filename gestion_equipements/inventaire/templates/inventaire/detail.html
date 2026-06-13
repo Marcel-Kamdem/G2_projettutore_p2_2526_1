@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Détail inventaire — GestioLab</title>
+  <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modules.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+</head>
+<body>
+<header class="header">
+  <a href="#" class="header-brand">⬡ GestioLab</a>
+  <nav class="header-nav">
+    {% comment %} <a href="{% url 'liste_equipements' %}">Équipements</a>
+    <a href="{% url 'liste_contacts' %}">Contacts</a>
+    <a href="{% url 'liste_mouvements' %}">Mouvements</a> {% endcomment %}
+    <a href="{% url 'inventaire:liste_inventaires' %}" class="active">Inventaires</a>
+  </nav>
+  <div class="header-right">
+    <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
+    {% comment %} <a href="{% url 'modifier_mot_de_passe' %}" class="btn btn-outline btn-sm">🔑 MDP</a> {% endcomment %}
+    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Déconnexion</a>
+  </div>
+</header>
+<div class="messages-container">
+  {% for message in messages %}<div class="alert alert-{{ message.tags }}">{{ message }}</div>{% endfor %}
+</div>
+<div class="page-wrapper">
+  <div class="page-title-bar">
+    <div>
+      <a href="{% url 'inventaire:liste_inventaires' %}" style="font-size:.85rem;color:var(--c5);text-decoration:none;">← Retour</a>
+      <h1 class="page-title" style="margin-top:.25rem">📋 {{ inventaire }}</h1>
+    </div>
+    <div class="page-actions">
+      {% if inventaire.statut == 'en_cours' %}
+        <form method="POST" action="{% url 'inventaire:cloturer_inventaire' inventaire.pk %}" style="display:inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-green" onclick="return confirm('Clôturer cet inventaire ?')">✅ Clôturer</button>
+        </form>
+      {% endif %}
+      <a href="{% url 'inventaire:rapport_excel' inventaire.pk %}" class="btn btn-outline">📊 Excel global</a>
+      <a href="{% url 'inventaire:rapport_pdf' inventaire.pk %}" class="btn btn-outline">📄 PDF global</a>
+      <a href="{% url 'inventaire:rapport_perte_excel' inventaire.pk %}" class="btn btn-outline" style="color:#991b1b">📊 Pertes Excel</a>
+      <a href="{% url 'inventaire:rapport_perte_pdf' inventaire.pk %}" class="btn btn-outline" style="color:#991b1b">📄 Pertes PDF</a>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Salles vérifiées</div>
+      <div class="stat-value">{{ inventaire.nb_salles_verifiees }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Équipements vérifiés</div>
+      <div class="stat-value">{{ inventaire.nb_equipements_verifies }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Présents</div>
+      <div class="stat-value" style="color:#065f46">{{ inventaire.nb_presents }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Absents</div>
+      <div class="stat-value" style="color:#991b1b">{{ inventaire.nb_absents }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Endommagés</div>
+      <div class="stat-value" style="color:#92400e">{{ inventaire.nb_endommages }}</div>
+    </div>
+  </div>
+
+  <!-- Liste des salles -->
+  <div class="table-card">
+    <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--c4)">
+      <strong>Vérification par salle</strong>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Salle</th>
+            <th>Type</th>
+            <th>Équipements vérifiés</th>
+            <th>Absents</th>
+            <th>Endommagés</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sd in salles_data %}
+          <tr>
+            <td><strong>{{ sd.salle.nom }}</strong></td>
+            <td>{{ sd.salle.get_type_salle_display }}</td>
+            <td>{{ sd.nb_verifies }}</td>
+            <td style="color:#991b1b;font-weight:700">{{ sd.nb_absents }}</td>
+            <td style="color:#92400e;font-weight:700">{{ sd.nb_endommages }}</td>
+            <td>
+              {% if sd.faite %}
+                <span class="badge badge-etudiant">✅ Vérifiée</span>
+              {% else %}
+                <span class="badge" style="background:#fef3c7;color:#92400e">⏳ En attente</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="td-actions">
+                {% if inventaire.statut == 'en_cours' %}
+                  <a href="{% url 'inventaire:saisie_salle' inventaire.pk sd.salle.pk %}" class="btn btn-sm btn-primary">
+                    {% if sd.faite %}✏ Modifier{% else %}▶ Saisir{% endif %}
+                  </a>
+                {% endif %}
+                {% if sd.faite %}
+                  <a href="{% url 'inventaire:rapport_salle_excel' inventaire.pk sd.salle.pk %}" class="btn btn-sm btn-green" title="Excel salle">📊</a>
+                  <a href="{% url 'inventaire:rapport_salle_pdf' inventaire.pk sd.salle.pk %}" class="btn btn-sm btn-outline" title="PDF salle">📄</a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>

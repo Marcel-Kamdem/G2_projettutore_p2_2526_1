@@ -3,7 +3,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Détail emprunt — GestioLab</title>
+  <title>Détail mouvement — GestioLab</title>
   <link rel="stylesheet" href="{% static 'css/reset.css' %}">
   <link rel="stylesheet" href="{% static 'css/modules.css' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,7 +16,7 @@
   <nav class="header-nav">
     <a href="{% url 'liste_equipements' %}">Équipements</a>
     <a href="{% url 'liste_contacts' %}">Contacts</a>
-    <a href="{% url 'liste_emprunts' %}" class="active">Emprunts</a>
+    <a href="{% url 'liste_mouvements' %}" class="active">Mouvements</a>
   </nav>
   <div class="header-right">
     <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
@@ -25,81 +25,103 @@
 </header>
 
 <div class="page-wrapper">
-
   <div class="page-title-bar">
     <div>
-      <a href="{% url 'liste_emprunts' %}" style="font-size:.85rem;color:var(--c5);text-decoration:none;">← Retour à la liste</a>
-      <h1 class="page-title" style="margin-top:.25rem">Détail de l'emprunt</h1>
+      <a href="{% url 'liste_mouvements' %}" style="font-size:.85rem;color:var(--c5);text-decoration:none;">← Retour à la liste</a>
+      <h1 class="page-title" style="margin-top:.25rem">Détail du mouvement</h1>
     </div>
-
     <div class="page-actions">
-      <a href="{% url 'modifier_emprunt' emprunt.pk %}" class="btn btn-green">✏ Modifier</a>
-      <a href="{% url 'supprimer_emprunt' emprunt.pk %}" class="btn btn-danger">🗑 Supprimer</a>
+      <a href="{% url 'modifier_emprunt' mouvement.pk %}" class="btn btn-green">✏ Modifier</a>
+      <a href="{% url 'supprimer_emprunt' mouvement.pk %}" class="btn btn-danger"
+         onclick="return confirm('Supprimer ce mouvement ?')">🗑 Supprimer</a>
     </div>
   </div>
 
   <div class="detail-card">
-
     <div class="detail-header">
       <div style="width:64px;height:64px;border-radius:var(--radius);background:var(--c2);display:flex;align-items:center;justify-content:center;font-size:2rem;">
-        📋
+        {% if mouvement.type_operation == 'entree' %}📥
+        {% elif mouvement.type_operation == 'emprunt' %}📤
+        {% else %}🚚{% endif %}
       </div>
-
       <div class="detail-header-info">
-        <h1>{{ emprunt.beneficiaire.nom_complet }}</h1>
+        <h1>{{ mouvement.equipement.nom }}</h1>
         <div class="detail-header-meta">
-          <span class="badge">{{ emprunt.etat }}</span>
+          <span class="badge">{{ mouvement.get_type_operation_display }}</span>
+          {% if mouvement.type_operation != 'entree' %}
+            <span class="badge badge-etat-{{ mouvement.etat|lower }}">{{ mouvement.get_etat_display }}</span>
+          {% endif %}
         </div>
       </div>
     </div>
 
     <div class="detail-body">
-
       <div class="detail-grid">
 
         <div class="detail-field">
-          <div class="field-label">Objet</div>
-          <div class="field-value">{{ emprunt.object_dmd }}</div>
+          <div class="field-label">Équipement</div>
+          <div class="field-value">
+            {{ mouvement.equipement.nom }}
+            {% if mouvement.equipement.reference %}
+              <span style="font-family:monospace;font-size:.82rem;color:var(--c5)">({{ mouvement.equipement.reference }})</span>
+            {% endif %}
+          </div>
         </div>
 
         <div class="detail-field">
-          <div class="field-label">Date emprunt</div>
-          <div class="field-value">{{ emprunt.date_empr }}</div>
+          <div class="field-label">Date de l'opération</div>
+          <div class="field-value">{{ mouvement.date_operation }}</div>
         </div>
 
+        {% if mouvement.gestionnaire %}
+        <div class="detail-field">
+          <div class="field-label">Gestionnaire</div>
+          <div class="field-value">{{ mouvement.gestionnaire.get_full_name|default:mouvement.gestionnaire.username }}</div>
+        </div>
+        {% endif %}
+
+        {% if mouvement.type_operation == 'emprunt' %}
+        <div class="detail-field">
+          <div class="field-label">Bénéficiaire</div>
+          <div class="field-value">{{ mouvement.beneficiaire.nom_complet|default:"—" }}</div>
+        </div>
+        <div class="detail-field">
+          <div class="field-label">Objet de la demande</div>
+          <div class="field-value">{{ mouvement.objet_demande|default:"—" }}</div>
+        </div>
         <div class="detail-field">
           <div class="field-label">Date retour prévue</div>
-          <div class="field-value">{{ emprunt.date_retour_prevu }}</div>
+          <div class="field-value">{{ mouvement.date_retour_prevu|default:"—" }}</div>
         </div>
-
         <div class="detail-field">
           <div class="field-label">Date retour effective</div>
-          <div class="field-value">{{ emprunt.date_retour_effect|default:"Non retourné" }}</div>
+          <div class="field-value">{{ mouvement.date_retour_effectif|default:"Non retourné" }}</div>
         </div>
+        {% if mouvement.message_admin %}
+        <div class="detail-field span-2">
+          <div class="field-label">Message administrateur</div>
+          <div class="field-value">{{ mouvement.message_admin }}</div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        {% if mouvement.type_operation == 'sortie' %}
+        <div class="detail-field">
+          <div class="field-label">Destination</div>
+          <div class="field-value">{{ mouvement.get_destination_display }}</div>
+        </div>
+        {% endif %}
+
+        {% if mouvement.notes %}
+        <div class="detail-field span-2">
+          <div class="field-label">Notes</div>
+          <div class="field-value">{{ mouvement.notes }}</div>
+        </div>
+        {% endif %}
 
       </div>
-
-      <div style="margin-top:1.5rem">
-        <div class="field-label">Équipements empruntés</div>
-
-        {% for eq in emprunt.equipements.all %}
-          <div style="margin:.4rem 0;padding:.4rem .6rem;background:var(--c4);border-radius:6px;display:flex;justify-content:space-between;align-items:center">
-            <span>{{ eq.nom }} ({{ eq.reference }})</span>
-
-            <div style="display:flex;gap:.5rem">
-              <a href="{% url 'detail_equipement' eq.pk %}" class="btn btn-sm btn-outline">👁</a>
-              <a href="{% url 'modifier_equipement' eq.pk %}" class="btn btn-sm btn-green">✏</a>
-              <a href="{% url 'retirer_equipement' eq.pk %}" class="btn btn-sm btn-danger">🗑</a>
-            </div>
-          </div>
-        {% empty %}
-          <p>Aucun équipement associé</p>
-        {% endfor %}
-      </div>
-
     </div>
   </div>
-
 </div>
 </body>
 </html>

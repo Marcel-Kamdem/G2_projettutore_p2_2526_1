@@ -1,5 +1,6 @@
 from django.db import models
-from emprunt.models import Emprunt
+from emprunt.models import Mouvement
+from salles.models import Salle
 
 class Categorie(models.Model):
     nom = models.CharField(max_length=100, unique=True)
@@ -33,7 +34,7 @@ class Equipement(models.Model):
     est_actif = models.BooleanField(default=True)
     notes = models.TextField(blank=True)
     categorie = models.ForeignKey(Categorie, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipements')
-    
+    salle = models.ForeignKey(Salle, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipements')
 
 
     def __str__(self):

@@ -8,15 +8,19 @@
   <link rel="stylesheet" href="{% static 'css/modules.css' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+  <style>
+    .section-champs { display: none; }
+    .section-champs.visible { display: contents; }
+  </style>
 </head>
 <body>
 
 <header class="header">
   <a href="#" class="header-brand">⬡ GestioLab</a>
   <nav class="header-nav">
-    <a href="{% url 'liste_equipements' %}" class="active">Équipements</a>
+    <a href="{% url 'liste_equipements' %}">Équipements</a>
     <a href="{% url 'liste_contacts' %}">Contacts</a>
-    <a href="#" class="active">Emprunts</a>
+    <a href="{% url 'liste_mouvements' %}" class="active">Mouvements</a>
   </nav>
   <div class="header-right">
     <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
@@ -31,141 +35,119 @@
 </div>
 
 <div class="page-wrapper">
-
   <div class="page-title-bar">
     <div>
-      <a href="{% url 'liste_emprunts' %}" style="font-size:.85rem;color:var(--c5);text-decoration:none;">← Retour à la liste</a>
+      <a href="{% url 'liste_mouvements' %}" style="font-size:.85rem;color:var(--c5);text-decoration:none;">← Retour à la liste</a>
       <h1 class="page-title" style="margin-top:.25rem">{{ titre }}</h1>
     </div>
   </div>
 
   <div class="form-card">
-    <h2>{{ titre }}</h2>
-    <form method="POST" enctype="multipart/form-data">
+    <form method="POST">
       {% csrf_token %}
       <div class="form-grid">
 
-        <div class="form-group">
-        <label for="{{ form.equipement.id_for_label }}">Équipement </label>
-        {{ form.equipement }}
-        {% if form.equipement.errors %}
-        <span style="color:var(--c7);font-size:.8rem">{{ form.equipement.errors.0 }}</span>
-      {% endif %}
-      </div>
+        <!-- Type d'opération — toujours visible -->
+        <div class="form-group span-2">
+          <label for="{{ form.type_operation.id_for_label }}">Type d'opération</label>
+          {{ form.type_operation }}
+          {% if form.type_operation.errors %}
+            <span style="color:var(--c7);font-size:.8rem">{{ form.type_operation.errors.0 }}</span>
+          {% endif %}
+        </div>
 
+        <!-- Équipement — toujours visible -->
         <div class="form-group">
-          <label for="{{ form.beneficiaire.id_for_label }}">Bénéficiaire </label>
+          <label for="{{ form.equipement.id_for_label }}">Équipement</label>
+          {{ form.equipement }}
+          {% if form.equipement.errors %}
+            <span style="color:var(--c7);font-size:.8rem">{{ form.equipement.errors.0 }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Date opération — toujours visible -->
+        <div class="form-group">
+          <label for="{{ form.date_operation.id_for_label }}">Date de l'opération</label>
+          {{ form.date_operation }}
+          {% if form.date_operation.errors %}
+            <span style="color:var(--c7);font-size:.8rem">{{ form.date_operation.errors.0 }}</span>
+          {% endif %}
+        </div>
+
+        <!-- === CHAMPS EMPRUNT === -->
+        <div class="form-group section-emprunt">
+          <label for="{{ form.beneficiaire.id_for_label }}">Bénéficiaire</label>
           {{ form.beneficiaire }}
           {% if form.beneficiaire.errors %}
             <span style="color:var(--c7);font-size:.8rem">{{ form.beneficiaire.errors.0 }}</span>
           {% endif %}
         </div>
 
-        <!--<div class="form-group span-2">
-          <label for="{{ form.object_dmd.id_for_label }}">Objet de la demande </label>
-          {{ form.object_dmd }}
-          {% if form.object_dmd.errors %}
-            <span style="color:var(--c7);font-size:.8rem">{{ form.object_dmd.errors.0 }}</span>
+        <div class="form-group section-emprunt">
+          <label for="{{ form.objet_demande.id_for_label }}">Objet de la demande</label>
+          {{ form.objet_demande }}
+          {% if form.objet_demande.errors %}
+            <span style="color:var(--c7);font-size:.8rem">{{ form.objet_demande.errors.0 }}</span>
           {% endif %}
-        </div class="form-group">
-          <label for="{{ form.date_empr.id_for_label}}">
-            date d'emprunt
-          </label>
-          <input type="date" name="date_empr" id="{{ form.date_empr.id_for_label }}" value="{{ form.date_empr.value|default_if_none:'' }}">
-          {% if form.date_empr.errors %}
-            <span style="color:var(--c7);font-size:.8rem">{{ form.date_empr.errors.0 }}</span>
-          {% endif %}
-        
-        <div>
-
         </div>
-        <div class="form-group">
-          <label for="{{ form.date_retour_prevu.id_for_label }}">Date retour prévue </label>
-          <input type="date" name="date_retour_prevu" id="{{ form.date_retour_prevu.id_for_label }}" value="{{ form.date_retour_prevu.value|default_if_none:'' }}">
+
+        <div class="form-group section-emprunt">
+          <label for="{{ form.date_retour_prevu.id_for_label }}">Date retour prévue</label>
+          {{ form.date_retour_prevu }}
           {% if form.date_retour_prevu.errors %}
             <span style="color:var(--c7);font-size:.8rem">{{ form.date_retour_prevu.errors.0 }}</span>
           {% endif %}
         </div>
 
-        <div class="form-group">
-          <label for="{{ form.date_retour_effect.id_for_label }}">Date retour effective</label>
-          <input type="date" name="date_retour_effect" id="{{ form.date_retour_effect.id_for_label }}" value="{{ form.date_retour_effect.value|default_if_none:'' }}">
-        </div>-->
+        <div class="form-group section-emprunt">
+          <label for="{{ form.date_retour_effectif.id_for_label }}">Date retour effective</label>
+          {{ form.date_retour_effectif }}
+        </div>
 
-
-
-  <div class="form-group span-2">
-  <label for="{{ form.object_dmd.id_for_label }}">
-    Objet de la demande
-  </label>
-
-  {{ form.object_dmd }}
-
-  {% if form.object_dmd.errors %}
-    <span style="color:var(--c7);font-size:.8rem">
-      {{ form.object_dmd.errors.0 }}
-    </span>
-  {% endif %}
-</div>
-
-<div class="form-group">
-  <label for="{{ form.date_empr.id_for_label }}">
-    Date d'emprunt
-  </label>
-
-  {{ form.date_empr }}
-
-  {% if form.date_empr.errors %}
-    <span style="color:var(--c7);font-size:.8rem">
-      {{ form.date_empr.errors.0 }}
-    </span>
-  {% endif %}
-</div>
-
-<div class="form-group">
-  <label for="{{ form.date_retour_prevu.id_for_label }}">
-    Date retour prévue
-  </label>
-
-  {{ form.date_retour_prevu }}
-
-  {% if form.date_retour_prevu.errors %}
-    <span style="color:var(--c7);font-size:.8rem">
-      {{ form.date_retour_prevu.errors.0 }}
-    </span>
-  {% endif %}
-</div>
-
-<div class="form-group">
-  <label for="{{ form.date_retour_effect.id_for_label }}">
-    Date retour effective
-  </label>
-
-  {{ form.date_retour_effect }}
-
-  {% if form.date_retour_effect.errors %}
-    <span style="color:var(--c7);font-size:.8rem">
-      {{ form.date_retour_effect.errors.0 }}
-    </span>
-  {% endif %}
-</div>
-
-        <div class="form-group">
+        <div class="form-group section-emprunt">
           <label for="{{ form.etat.id_for_label }}">État</label>
           {{ form.etat }}
-
         </div>
+
+        <!-- === CHAMPS SORTIE === -->
+        <div class="form-group section-sortie">
+          <label for="{{ form.destination.id_for_label }}">Destination</label>
+          {{ form.destination }}
+          {% if form.destination.errors %}
+            <span style="color:var(--c7);font-size:.8rem">{{ form.destination.errors.0 }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Notes — toujours visible -->
+        <div class="form-group span-2">
+          <label for="{{ form.notes.id_for_label }}">Notes</label>
+          {{ form.notes }}
+        </div>
+
       </div>
 
       <div class="form-actions">
-        <a href="{% url 'liste_emprunts' %}" class="btn btn-outline">
-          Annuler
-        </a>
-        <button type="submit" class="btn btn-primary">{{ action }} l'emprunt</button>
+        <a href="{% url 'liste_mouvements' %}" class="btn btn-outline">Annuler</a>
+        <button type="submit" class="btn btn-primary">{{ action }} le mouvement</button>
       </div>
     </form>
   </div>
-
 </div>
+
+<script>
+  const typeSelect = document.getElementById('{{ form.type_operation.id_for_label }}');
+  const champsEmprunt = document.querySelectorAll('.section-emprunt');
+  const champsSortie = document.querySelectorAll('.section-sortie');
+
+  function majChamps() {
+    const val = typeSelect.value;
+    champsEmprunt.forEach(el => el.classList.toggle('visible', val === 'emprunt'));
+    champsSortie.forEach(el => el.classList.toggle('visible', val === 'sortie'));
+  }
+
+  typeSelect.addEventListener('change', majChamps);
+  // Appel initial (en cas de rechargement avec valeur pré-remplie)
+  majChamps();
+</script>
 </body>
 </html>

@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saisie — {{ salle.nom }}</title>
+  <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modules.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+  <style>
+    .inv-table { width:100%; border-collapse:collapse; }
+    .inv-table th { background:var(--c2);color:#fff;padding:.7rem 1rem;text-align:left;font-size:.85rem; }
+    .inv-table td { padding:.6rem 1rem;border-bottom:1px solid var(--c4);vertical-align:middle; }
+    .inv-table tr:hover { background:var(--c4); }
+    .inv-table select, .inv-table input[type=number], .inv-table textarea {
+      width:100%;padding:.35rem .5rem;border:1px solid var(--c4);border-radius:6px;font-size:.85rem;
+    }
+    .badge-present  { background:#C6EFCE;color:#065f46;padding:.2rem .6rem;border-radius:20px;font-size:.78rem;font-weight:700; }
+    .badge-absent   { background:#FFC7CE;color:#991b1b;padding:.2rem .6rem;border-radius:20px;font-size:.78rem;font-weight:700; }
+    .badge-endommage{ background:#FFEB9C;color:#92400e;padding:.2rem .6rem;border-radius:20px;font-size:.78rem;font-weight:700; }
+  </style>
+</head>
+<body>
+<header class="header">
+  <a href="#" class="header-brand">⬡ GestioLab</a>
+  <nav class="header-nav">
+    {% comment %} <a href="{% url 'liste_equipements' %}">Équipements</a>
+    <a href="{% url 'liste_contacts' %}">Contacts</a>
+    <a href="{% url 'liste_mouvements' %}">Mouvements</a> {% endcomment %}
+    <a href="{% url 'inventaire:liste_inventaires' %}" class="active">Inventaires</a>
+  </nav>
+  <div class="header-right">
+    <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
+    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Déconnexion</a>
+  </div>
+</header>
+<div class="messages-container">
+  {% for message in messages %}<div class="alert alert-{{ message.tags }}">{{ message }}</div>{% endfor %}
+</div>
+<div class="page-wrapper">
+  <div class="page-title-bar">
+    <div>
+      <a href="{% url 'inventaire:detail_inventaire' inventaire.pk %}" style="font-size:.85rem;color:var(--c5);text-decoration:none;">← Retour à l'inventaire</a>
+      <h1 class="page-title" style="margin-top:.25rem">🏫 Saisie — {{ salle.nom }}</h1>
+    </div>
+  </div>
+
+  <div style="background:var(--c3);border-radius:var(--radius);padding:1rem 1.5rem;margin-bottom:1.5rem;border:1px solid var(--c4)">
+    <strong>Inventaire :</strong> {{ inventaire }} &nbsp;|&nbsp;
+    <strong>Salle :</strong> {{ salle.get_type_salle_display }} &nbsp;|&nbsp;
+    <strong>Équipements :</strong> {{ lignes.count }}
+  </div>
+
+  {% if lignes %}
+  <form method="POST">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <div class="table-card">
+      <div class="table-scroll">
+        <table class="inv-table">
+          <thead>
+            <tr>
+              <th>Équipement</th>
+              <th>Référence</th>
+              <th>Catégorie</th>
+              <th>Qté attendue</th>
+              <th>Qté constatée</th>
+              <th>Statut</th>
+              <th>Observations</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ligne, form in paires %}
+            <tr>
+              {{ form.id }}
+              <td><strong>{{ ligne.equipement.nom }}</strong></td>
+              <td style="font-family:monospace;font-size:.82rem">{{ ligne.equipement.reference|default:"—" }}</td>
+              <td>{{ ligne.equipement.categorie.nom|default:"—" }}</td>
+              <td style="text-align:center">{{ ligne.quantite_attendue }}</td>
+              <td style="width:100px">{{ form.quantite_constatee }}</td>
+              <td style="width:140px">{{ form.statut }}</td>
+              <td>{{ form.observations }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="form-actions" style="margin-top:1.5rem">
+      <a href="{% url 'inventaire:detail_inventaire' inventaire.pk %}" class="btn btn-outline">Annuler</a>
+      <button type="submit" class="btn btn-primary">💾 Enregistrer la vérification</button>
+    </div>
+  </form>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📦</div>
+    <p>Aucun équipement assigné à cette salle.<br>
+      <a href="{% url 'liste_equipements' %}">Assigner des équipements</a> d'abord.</p>
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>

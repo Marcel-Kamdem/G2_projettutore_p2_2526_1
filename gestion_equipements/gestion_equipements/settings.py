@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'emprunt',
     'statistiques',
     'salles',
+    'inventaire',
 ]
 
 MIDDLEWARE = [

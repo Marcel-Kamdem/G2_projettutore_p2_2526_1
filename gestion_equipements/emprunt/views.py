@@ -1,174 +1,152 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
 
-from emprunt.models import Emprunt
-from emprunt.emprunt_service import EmpruntService
-#from gestion_equipements import emprunt
-from .forms import EmpruntForm, EmpruntModificationForm, ImportEmpruntForm
-#
-def valider_emprunt(request, pk):
-    emprunt = Emprunt.objects.get(id=id)
-    emprunt.etat = "VALIDE"
-    emprunt.save()
-    return redirect('loans')
-
-def refuser_emprunt(request, id):
-    emprunt = Emprunt.objects.get(id=id)
-    emprunt.etat = "REFUSE"
-    emprunt.save()
-    return redirect('loans')
+from .models import Mouvement
+from .mouvement_service import MouvementService
+from .forms import MouvementForm, MouvementModificationForm, ImportMouvementForm
 
 
+# ─── Import Excel ──────────────────────────────────────────────────────────────
 
-def importer_emprunts_view(request):
-    form = ImportEmpruntForm()
+def importer_mouvements_view(request):
+    form = ImportMouvementForm()
     contexte = {'form': form}
 
     if request.method == 'POST':
-        form = ImportEmpruntForm(request.POST, request.FILES)
-
+        form = ImportMouvementForm(request.POST, request.FILES)
         if form.is_valid():
             fichier = request.FILES['fichier_excel']
-            succes, erreurs = EmpruntService.importer_depuis_excel(fichier)
-
+            succes, erreurs = MouvementService.importer_depuis_excel(fichier)
             contexte['succes'] = succes
             contexte['erreurs'] = erreurs
 
     return render(request, 'emprunt/importer.html', contexte)
 
 
-def liste_emprunts(request):
+# ─── Liste mouvements (emprunts + sorties, hors entrées) ──────────────────────
+
+
+
+def liste_mouvements(request):
     query = request.GET.get('q', '')
+    type_filtre = request.GET.get('type', '')
     etat_filtre = request.GET.get('etat', '')
 
-    emprunts = EmpruntService.liste_emprunts(query, etat_filtre)
-    emprunts = emprunts.exclude(etat="PLANIFIE").order_by('-date_empr')
+    mouvements = MouvementService.liste_mouvements(query, type_filtre, etat_filtre)
+    # On exclut les planifiés de la liste principale (ils ont leur propre vue)
+    # mouvements = mouvements.exclude(etat="PLANIFIE").order_by('-date_operation')
+    mouvements = mouvements.order_by('-date_operation')
 
-    stats = {
-        "total": Emprunt.objects.count(),
-        "en_cours": Emprunt.objects.filter(etat="EN_COURS").count(),
-        "planifies": Emprunt.objects.filter(etat="PLANIFIE").count(),
-        "valides": Emprunt.objects.filter(etat="VALIDE").count(),
-        "retournes": Emprunt.objects.filter(etat="RETOURNE").count(),
-        "expires": Emprunt.objects.filter(etat="EXPIRE").count(),
-        "annules": Emprunt.objects.filter(etat="ANNULE").count(),
-    }
+    stats = MouvementService.stats_mouvements()
 
     return render(request, "emprunt/liste.html", {
-        "emprunts": emprunts,
+        "mouvements": mouvements,
         "stats": stats,
         "query": query,
+        "type_filtre": type_filtre,
         "etat_filtre": etat_filtre,
-        "etats": Emprunt.EMPRUNT_STATE,
+        "types": Mouvement.TYPE_OPERATION_CHOICES,
+        "etats": Mouvement.ETAT_CHOICES,
     })
 
 
-def detail_emprunt(request, pk):
-    emprunt = get_object_or_404(Emprunt, pk=pk)
-    return render(request, 'emprunt/detail.html', {'emprunt': emprunt})
+# ─── Détail ────────────────────────────────────────────────────────────────────
 
+def detail_mouvement(request, pk):
+    mouvement = get_object_or_404(Mouvement, pk=pk)
+    return render(request, 'emprunt/detail.html', {'mouvement': mouvement})
+
+
+# ─── Créer ─────────────────────────────────────────────────────────────────────
 
 @login_required
-def creer_emprunt(request):
+def creer_mouvement(request):
     if request.method == "POST":
-        form = EmpruntForm(request.POST)
-
+        form = MouvementForm(request.POST)
         if form.is_valid():
-            emprunt = form.save(commit=False)
+            mouvement = form.save(commit=False)
+            mouvement.gestionnaire = request.user
 
-            existe = Emprunt.objects.filter(
-                equipement=emprunt.equipement,
-                etat__in=["EN_COURS", "PLANIFIE", "VALIDE"]
-            ).exists()
+            # Vérification doublon emprunt actif
+            if mouvement.type_operation == 'emprunt':
+                existe = Mouvement.objects.filter(
+                    equipement=mouvement.equipement,
+                    type_operation='emprunt',
+                    etat__in=["EN_COURS", "PLANIFIE", "VALIDE"]
+                ).exists()
+                if existe:
+                    messages.error(request, "Cet équipement est déjà en cours d'emprunt.")
+                    return render(request, 'emprunt/form.html', {'form': form, 'titre': 'Créer un mouvement', 'action': 'Créer'})
 
-            if existe:
-                messages.error(request, "Cet équipement est déjà utilisé")
-                return render(request, 'emprunt/form.html', {'form': form})
+            mouvement.date_retour_effectif = None
+            mouvement.save()
 
-            emprunt.gestionnaire = request.user
-            emprunt.date_retour_effect = None
-            emprunt.save()
-            form.save_m2m()
-
-            if emprunt.etat == "PLANIFIE":
+            if mouvement.etat == "PLANIFIE":
                 return redirect('liste_planifications')
-            return redirect('liste_emprunts')
-
+            return redirect('liste_mouvements')
     else:
-        form = EmpruntForm()
+        form = MouvementForm()
 
-    return render(request, 'emprunt/form.html', {'form': form})
+    return render(request, 'emprunt/form.html', {
+        'form': form,
+        'titre': 'Créer un mouvement',
+        'action': 'Créer'
+    })
 
+
+# ─── Modifier ──────────────────────────────────────────────────────────────────
 
 @login_required
-def modifier_emprunt(request, pk):
-    emprunt = get_object_or_404(Emprunt, pk=pk)
-    #form = EmpruntForm(request.POST or None, instance=emprunt)
-    form = EmpruntModificationForm(request.POST or None,instance=emprunt)
+def modifier_mouvement(request, pk):
+    mouvement = get_object_or_404(Mouvement, pk=pk)
+    form = MouvementModificationForm(request.POST or None, instance=mouvement)
     if form.is_valid():
         form.save()
-        
-        #updated = form.save(commit=False)
-
-        #existe = Emprunt.objects.filter(
-         #   equipement=updated.equipement,
-          #  etat__in=["EN_COURS", "PLANIFIE", "VALIDE"]
-        #).exclude(pk=emprunt.pk).exists()
-
-        #if existe:
-        #    messages.error(request, "Cet équipement est déjà emprunté")
-         #   return render(request, 'emprunt/form.html', {'form': form})
-
-        #updated.save()
-        #form.save_m2m()
-
-        #if updated.etat == "PLANIFIE":
-         #   return redirect('liste_planifications')
-        return redirect('liste_emprunts')
-
-    return render(request, 'emprunt/form.html', {'form': form})
+        return redirect('liste_mouvements')
+    return render(request, 'emprunt/form.html', {
+        'form': form,
+        'titre': 'Modifier le mouvement',
+        'action': 'Modifier'
+    })
 
 
-def supprimer_emprunt(request, pk):
-    emprunt = get_object_or_404(Emprunt, pk=pk)
-    emprunt.delete()
-    return redirect('liste_emprunts')
+# ─── Supprimer ─────────────────────────────────────────────────────────────────
+
+def supprimer_mouvement(request, pk):
+    mouvement = get_object_or_404(Mouvement, pk=pk)
+    mouvement.delete()
+    return redirect('liste_mouvements')
 
 
-
+# ─── Planifications ────────────────────────────────────────────────────────────
 
 def liste_planifications(request):
-    planifications = Emprunt.objects.filter(etat="PLANIFIE").order_by('-date_empr')
+    planifications = Mouvement.objects.filter(
+        type_operation='emprunt',
+        etat="PLANIFIE"
+    ).order_by('-date_operation')
     return render(request, 'emprunt/planifications.html', {'planifications': planifications})
 
 
 def valider_planification(request, pk):
-    emprunt = Emprunt.objects.get(pk=pk)
-    emprunt.etat = "VALIDE"
-    emprunt.message_admin = "Votre emprunt a été validé par l'administrateur."
-    #plan = get_object_or_404(Emprunt, pk=pk)
-    #plan.etat = "VALIDE"
-    #plan.save()
-    emprunt.save()
-    return redirect(request.META.get('HTTP_REFERER'))
+    mouvement = get_object_or_404(Mouvement, pk=pk)
+    mouvement.etat = "VALIDE"
+    mouvement.message_admin = "Votre emprunt a été validé par l'administrateur."
+    mouvement.save()
+    return redirect(request.META.get('HTTP_REFERER', 'liste_planifications'))
 
 
 def refuser_planification(request, pk):
-    emprunt = Emprunt.objects.get(pk=pk)
-    emprunt.etat = "REFUSE"
-    emprunt.message_admin = "Votre emprunt a été refusé par l'administrateur."
-    emprunt.save()
-    #plan = get_object_or_404(Emprunt, pk=pk)
-    #plan.etat = "REFUSE"
-    #plan.save()
-    #return redirect('liste_planifications')
-    return redirect(request.META.get('HTTP_REFERER'))
+    mouvement = get_object_or_404(Mouvement, pk=pk)
+    mouvement.etat = "REFUSE"
+    mouvement.message_admin = "Votre emprunt a été refusé par l'administrateur."
+    mouvement.save()
+    return redirect(request.META.get('HTTP_REFERER', 'liste_planifications'))
 
 
 def passer_en_cours(request, pk):
-    plan = get_object_or_404(Emprunt, pk=pk)
-    plan.etat = "EN_COURS"
-    plan.save()
+    mouvement = get_object_or_404(Mouvement, pk=pk)
+    mouvement.etat = "EN_COURS"
+    mouvement.save()
     return redirect('liste_planifications')

@@ -1,0 +1,26 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmer suppression — GestioLab</title>
+  <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modules.css' %}">
+</head>
+<body>
+<div class="page-wrapper" style="max-width:500px;margin:4rem auto">
+  <div class="form-card">
+    <h2 style="margin-bottom:1rem">🗑 Supprimer l'inventaire</h2>
+    <p>Voulez-vous vraiment supprimer <strong>{{ inventaire }}</strong> ?<br>
+    Cette action supprimera également toutes les lignes de vérification associées.</p>
+    <div class="form-actions" style="margin-top:1.5rem">
+      <a href="{% url 'inventaire:detail_inventaire' inventaire.pk %}" class="btn btn-outline">Annuler</a>
+      <form method="POST" style="display:inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>

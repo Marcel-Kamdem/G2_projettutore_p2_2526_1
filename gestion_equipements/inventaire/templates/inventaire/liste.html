@@ -1,0 +1,95 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventaires — GestioLab</title>
+  <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modules.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+</head>
+<body>
+<header class="header">
+  <a href="#" class="header-brand">⬡ GestioLab</a>
+  <nav class="header-nav">
+    {% comment %} <a href="{% url 'liste_equipements' %}">Équipements</a>
+    <a href="{% url 'liste_contacts' %}">Contacts</a>
+    <a href="{% url 'liste_mouvements' %}">Mouvements</a> {% endcomment %}
+    <a href="{% url 'inventaire:liste_inventaires' %}" class="active">Inventaires</a>
+  </nav>
+  <div class="header-right">
+    <img src="{% static 'assets/img/profil-picture.png' %}" alt="profil">
+    {% comment %} <a href="{% url 'modifier_mot_de_passe' %}" class="btn btn-outline btn-sm">🔑 MDP</a> {% endcomment %}
+    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Déconnexion</a>
+  </div>
+</header>
+<div class="messages-container">
+  {% for message in messages %}<div class="alert alert-{{ message.tags }}">{{ message }}</div>{% endfor %}
+</div>
+<div class="page-wrapper">
+  <div class="page-title-bar">
+    <h1 class="page-title">📋 Inventaires</h1>
+    <div class="page-actions">
+      <a href="{% url 'inventaire:creer_inventaire' %}" class="btn btn-primary">+ Nouvel inventaire</a>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-scroll">
+      {% if inventaires %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date début</th>
+            <th>Date fin</th>
+            <th>Statut</th>
+            <th>Salles vérifiées</th>
+            <th>Équipements</th>
+            <th>Absents</th>
+            <th>Endommagés</th>
+            <th>Créé par</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in inventaires %}
+          <tr>
+            <td><strong>{{ inv.date_debut }}</strong></td>
+            <td>{{ inv.date_fin|default:"—" }}</td>
+            <td>
+              {% if inv.statut == 'cloture' %}
+                <span class="badge badge-etudiant">✅ Clôturé</span>
+              {% else %}
+                <span class="badge badge-enseignant">🔄 En cours</span>
+              {% endif %}
+            </td>
+            <td>{{ inv.nb_salles_verifiees }}</td>
+            <td>{{ inv.nb_equipements_verifies }}</td>
+            <td style="color:#991b1b;font-weight:700">{{ inv.nb_absents }}</td>
+            <td style="color:#92400e;font-weight:700">{{ inv.nb_endommages }}</td>
+            <td>{{ inv.cree_par.get_full_name|default:inv.cree_par.username|default:"—" }}</td>
+            <td>
+              <div class="td-actions">
+                <a href="{% url 'inventaire:detail_inventaire' inv.pk %}" class="btn btn-sm btn-outline">👁</a>
+                <a href="{% url 'inventaire:rapport_excel' inv.pk %}" class="btn btn-sm btn-green" title="Excel">📊</a>
+                <a href="{% url 'inventaire:rapport_pdf' inv.pk %}" class="btn btn-sm btn-outline" title="PDF">📄</a>
+                <a href="{% url 'inventaire:supprimer_inventaire' inv.pk %}" class="btn btn-sm btn-danger"
+                   onclick="return confirm('Supprimer cet inventaire ?')">🗑</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>Aucun inventaire. <a href="{% url 'inventaire:creer_inventaire' %}">Créer le premier</a></p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+</body>
+</html>

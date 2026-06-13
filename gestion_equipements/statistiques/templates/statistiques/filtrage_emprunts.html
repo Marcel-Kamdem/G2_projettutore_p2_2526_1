@@ -248,7 +248,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for emprunt in emprunts %}
+        {% for emprunt in mouvements %}
 <tr {% if emprunt.etat == 'En cours' and emprunt.date_retour_prevu < aujourd_hui %}class="retard-row"{% endif %}>
 
         <tr {% if est_retard %}class="retard-row"{% endif %}>
